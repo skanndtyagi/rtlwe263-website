@@ -152,6 +152,37 @@ const renderApprovedEntries = () => {
     .join('');
 };
 
+const renderHeroSlideInventory = () => {
+  const container = adminGet('hero-slide-list');
+  if (!container) return;
+  const slides = Array.isArray(data.heroSlides) ? data.heroSlides : [];
+  if (!slides.length) {
+    container.innerHTML = '<p>No hero slides configured yet.</p>';
+    return;
+  }
+  container.innerHTML = `<ul>${slides
+    .map((slide) => `<li><strong>${esc(slide.src)}</strong>${slide.caption ? ` — ${esc(slide.caption)}` : ''}</li>`)
+    .join('')}</ul>`;
+};
+
+const renderGalleryInventory = () => {
+  const container = adminGet('gallery-image-list');
+  if (!container) return;
+  const gallery = Array.isArray(data.gallery) ? data.gallery : [];
+  if (!gallery.length) {
+    container.innerHTML = '<p>No gallery images configured yet.</p>';
+    return;
+  }
+  container.innerHTML = `<ul>${gallery
+    .map((item) => `<li><strong>${esc(item.src || item)}</strong>${item.caption ? ` — ${esc(item.caption)}` : ''}</li>`)
+    .join('')}</ul>`;
+};
+
+const renderImageInventory = () => {
+  renderHeroSlideInventory();
+  renderGalleryInventory();
+};
+
 const approveEntry = (index) => {
   const pending = readFallbackEntries();
   const approved = readApprovedEntries();
@@ -198,6 +229,7 @@ const loadAdminState = () => {
   feedUrl.value = data.integrations.guestbookFeedUrl;
   adminUrl.value = data.integrations.adminDashboardUrl;
   renderEventEditor(data.programme);
+  renderImageInventory();
 };
 
 const bindAdminEvents = () => {
@@ -233,6 +265,7 @@ const bindAdminEvents = () => {
 
     save(data);
     renderAll();
+    renderImageInventory();
     showAdminMessage('Saved content successfully.');
   });
 

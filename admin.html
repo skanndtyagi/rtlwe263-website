@@ -23,6 +23,11 @@
         <div class="container">
           <h1>Admin Dashboard</h1>
           <p>Manage homepage content, gallery, events, and guestbook entries from a secure admin panel.</p>
+          <div class="admin-nav-links">
+            <a href="#admin-content">Content</a>
+            <a href="#admin-media">Media</a>
+            <a href="#admin-guestbook">Guestbook</a>
+          </div>
         </div>
       </section>
 
@@ -60,6 +65,12 @@
             <p>Hero slide images and captions are managed from the admin form, one line per slide.</p>
             <p>Gallery paths can be updated with one line per image in the admin form.</p>
             <p>Guestbook submissions are emailed to <strong>london.westend@roundtable.org.uk</strong> and stored for approval.</p>
+            <div id="admin-media" class="admin-image-inventory">
+              <h4>Current image inventory</h4>
+              <p>These are the active hero slide and gallery image paths currently configured for the site.</p>
+              <div id="hero-slide-list"></div>
+              <div id="gallery-image-list"></div>
+            </div>
           </aside>
         </div>
       </section>
