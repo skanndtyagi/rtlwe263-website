@@ -9,12 +9,12 @@ const defaultData = {
     'We are a vibrant Round Table based in central London. Across the year we host social nights, business meetings, volunteering initiatives, and national/international events. Our mission is simple: meaningful friendship, personal growth, and doing good while having fun.',
   heroImage: 'assets/hero.jpg',
   gallery: [
-    'assets/gallery-01.jpg',
-    'assets/gallery-02.jpg',
-    'assets/gallery-03.jpg',
-    'assets/gallery-04.jpg',
-    'assets/gallery-05.jpg',
-    'assets/gallery-06.jpg',
+    { src: 'assets/gallery-01.jpg', caption: 'Brotherhood night in the West End' },
+    { src: 'assets/gallery-02.jpg', caption: 'International fellowship and visiting tablers' },
+    { src: 'assets/gallery-03.jpg', caption: 'Westenders social evening' },
+    { src: 'assets/gallery-04.jpg', caption: 'Community and service in action' },
+    { src: 'assets/gallery-05.jpg', caption: 'Club pride and chapter identity' },
+    { src: 'assets/gallery-06.jpg', caption: 'Memorable moments across the programme' },
   ],
   integrations: {
     guestbookSubmitUrl: '',
@@ -70,7 +70,11 @@ let data = load();
 
 function renderGallery() {
   document.getElementById('gallery-grid').innerHTML = data.gallery
-    .map((src, i) => `<figure class="anim-rise"><img src="${esc(src)}" alt="London West End gallery image ${i + 1}" loading="lazy" /></figure>`)
+    .map((item, i) => {
+      const src = typeof item === 'string' ? item : item.src;
+      const caption = typeof item === 'string' ? '' : item.caption || '';
+      return `<figure class="anim-rise"><img src="${esc(src)}" alt="London West End gallery image ${i + 1}" loading="lazy" /><figcaption>${esc(caption)}</figcaption></figure>`;
+    })
     .join('');
 }
 
@@ -160,7 +164,10 @@ function loadDashboard() {
   document.getElementById('dash-hero-subtitle').value = data.heroSubtitle;
   document.getElementById('dash-about').value = data.about;
   document.getElementById('dash-hero-image').value = data.heroImage;
-  document.getElementById('dash-gallery').value = data.gallery.join('\n');
+  document.getElementById('dash-gallery').value = data.gallery.map((item) => {
+    if (typeof item === 'string') return `${item} | `;
+    return `${item.src} | ${item.caption || ''}`;
+  }).join('\n');
   document.getElementById('dash-submit-url').value = data.integrations.guestbookSubmitUrl;
   document.getElementById('dash-feed-url').value = data.integrations.guestbookFeedUrl;
   document.getElementById('dash-admin-url').value = data.integrations.adminDashboardUrl;
@@ -175,8 +182,16 @@ function bindDashboard() {
     data.gallery = document
       .getElementById('dash-gallery')
       .value.split('\n')
-      .map((s) => s.trim())
-      .filter(Boolean);
+      .map((line) => line.trim())
+      .filter(Boolean)
+      .map((line) => {
+        const [src, ...captionParts] = line.split('|');
+        return {
+          src: (src || '').trim(),
+          caption: captionParts.join('|').trim(),
+        };
+      })
+      .filter((item) => item.src);
 
     data.integrations.guestbookSubmitUrl = document.getElementById('dash-submit-url').value.trim();
     data.integrations.guestbookFeedUrl = document.getElementById('dash-feed-url').value.trim();
