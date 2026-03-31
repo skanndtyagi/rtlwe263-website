@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en-GB">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>RTLWE263 Admin Dashboard</title>
+    <meta name="description" content="Admin dashboard for managing Round Table London West End 623 website content and guestbook approvals." />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container nav-row">
+        <a href="index.html" class="brand"><span>RT</span> London West End 623</a>
+        <nav id="site-nav" class="site-nav">
+          <a href="index.html">Live site</a>
+          <a href="admin.html" aria-current="page">Admin</a>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <section class="section" id="admin-overview">
+        <div class="container">
+          <h1>Admin Dashboard</h1>
+          <p>Use this page to manage homepage content and moderate guestbook entries.</p>
+        </div>
+      </section>
+
+      <section class="section alt" id="admin-content">
+        <div class="container split">
+          <div>
+            <h2>Content settings</h2>
+            <form id="admin-content-form" class="admin-form">
+              <label>Hero title<input id="admin-hero-title" maxlength="120" required /></label>
+              <label>Hero subtitle<textarea id="admin-hero-subtitle" rows="3" maxlength="320"></textarea></label>
+              <label>About section<textarea id="admin-about" rows="4" maxlength="600"></textarea></label>
+              <label>Hero image path<input id="admin-hero-image" placeholder="assets/hero.jpg" /></label>
+              <label>Gallery entries<textarea id="admin-gallery" rows="5" placeholder="assets/gallery-01.jpg | Caption"></textarea></label>
+              <label>Programme entries<textarea id="admin-programme" rows="6" placeholder="April 2026 | 01 Apr: AGM | KoD ; 15 Apr: Social"></textarea></label>
+              <label>Guestbook submit URL<input id="admin-submit-url" placeholder="https://..." /></label>
+              <label>Guestbook approved feed URL<input id="admin-feed-url" placeholder="https://..." /></label>
+              <label>Admin approval URL<input id="admin-admin-url" placeholder="https://..." /></label>
+            </form>
+            <div class="hero-actions">
+              <button class="btn btn-primary" id="admin-save-content" type="button">Save Content</button>
+              <button class="btn btn-secondary" id="admin-reset-content" type="button">Reset Defaults</button>
+            </div>
+          </div>
+          <aside class="info-card">
+            <h3>Admin notes</h3>
+            <p>The live site reads saved content from browser storage. Guestbook approval requires a remote integration or local moderation.</p>
+            <p>If you want a remote guestbook workflow, set the submit URL and approved feed URL here, then save content.</p>
+          </aside>
+        </div>
+      </section>
+
+      <section class="section" id="admin-guestbook">
+        <div class="container">
+          <h2>Pending guestbook entries</h2>
+          <p>Approve pending entries saved locally when remote submission is disabled or unavailable.</p>
+          <div id="admin-message" class="admin-message"></div>
+          <div id="pending-entries"></div>
+          <div>
+            <h3>Approved entries</h3>
+            <div id="approved-entries"></div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script src="script.js"></script>
+    <script src="admin.js"></script>
+  </body>
+</html>
