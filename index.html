@@ -2,28 +2,44 @@
 <html lang="en-GB">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Round Table London West End 623 | Fellowship in Central London</title>
     <meta
       name="description"
-      content="Round Table London West End No. 623 — 2026-2027 programme, members, and visiting book."
+      content="Round Table London West End No. 623: programme, events, members, and digital visiting book. A social and service community based in London."
     />
-    <title>Round Table London West End 623</title>
+    <meta name="robots" content="index,follow" />
+    <link rel="canonical" href="https://londonwestend623.org" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Round Table London West End 623" />
+    <meta property="og:description" content="Fellowship, socials and service in the heart of London." />
+    <meta property="og:image" content="assets/og-cover.jpg" />
+    <meta property="og:url" content="https://londonwestend623.org" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Round Table London West End 623" />
+    <meta name="twitter:description" content="Programme, members and visiting book." />
+    <meta name="twitter:image" content="assets/og-cover.jpg" />
+
+    <script type="application/ld+json" id="schema-org"></script>
+
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <header class="site-header" id="top">
-      <div class="container nav-wrap">
-        <a class="brand" href="#top">
-          <span class="brand-mark">RT</span>
-          <span class="brand-text">London West End 623</span>
-        </a>
-        <nav class="site-nav" aria-label="Main navigation">
+    <header class="site-header">
+      <div class="container nav-row">
+        <a href="#" class="brand"><span>RT</span> London West End 623</a>
+        <button class="menu-btn" id="menu-btn" aria-expanded="false" aria-controls="site-nav">Menu</button>
+        <nav id="site-nav" class="site-nav">
+          <a href="#about">About</a>
+          <a href="#highlights">Highlights</a>
           <a href="#programme">Programme</a>
           <a href="#tablers">Tablers</a>
           <a href="#visiting-book">Visiting Book</a>
@@ -33,224 +49,133 @@
     </header>
 
     <main>
-      <section class="hero">
-        <div class="container hero-grid">
-          <div>
-            <p class="kicker">Round Table London West End No. 623</p>
-            <h1>The Westenders' Guide for 2026-2027</h1>
-            <p class="hero-copy">
-              Fellowship, service, and unforgettable socials in the heart of London. Explore the full programme,
-              meet the Tablers, and leave a note in our Visiting Book.
-            </p>
-            <div class="hero-actions">
-              <a class="btn btn-primary" href="#programme">View Programme</a>
-              <a class="btn btn-ghost" href="#visiting-book">Sign Visiting Book</a>
-            </div>
+      <section class="hero" id="home">
+        <div class="hero-overlay"></div>
+        <img id="hero-image" class="hero-image" src="assets/hero.jpg" alt="London West End Tablers" />
+        <div class="container hero-content">
+          <p class="eyebrow">ROUND TABLE LONDON WEST END NO. 623</p>
+          <h1 id="hero-title">The Westenders Guide 2026-2027</h1>
+          <p id="hero-subtitle">
+            A modern fellowship community for men under 45 — blending friendship, community impact, and unforgettable
+            London socials.
+          </p>
+          <div class="hero-actions">
+            <a class="btn btn-primary" href="#programme">Explore Programme</a>
+            <a class="btn btn-secondary" href="#visiting-book">Sign Visiting Book</a>
           </div>
-          <aside class="hero-card" aria-label="At a glance">
-            <h2>At a glance</h2>
+          <div class="hero-meta">
+            <span>Socials</span><span>Service</span><span>International Fellowship</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="about">
+        <div class="container split">
+          <div>
+            <h2>About London West End 623</h2>
+            <p id="about-copy">
+              We are a vibrant Round Table based in central London. Across the year we host social nights, business
+              meetings, volunteering initiatives, and national/international events. Our mission is simple: meaningful
+              friendship, personal growth, and doing good while having fun.
+            </p>
+          </div>
+          <aside class="info-card">
+            <h3>Quick Facts</h3>
             <ul>
-              <li><strong>Year:</strong> 2026-2027</li>
-              <li><strong>Home:</strong> London West End</li>
-              <li><strong>Format:</strong> Socials, service, fellowship</li>
-              <li><strong>Members:</strong> 11 featured Tablers</li>
+              <li>Founded: Re-chartered in 2019</li>
+              <li>Age range: 18-45 (Round Table model)</li>
+              <li>Location: London West End</li>
+              <li>Programme year: April 2026 - April 2027</li>
             </ul>
           </aside>
+        </div>
+      </section>
+
+      <section class="section alt" id="highlights">
+        <div class="container">
+          <h2>Gallery Highlights</h2>
+          <p class="muted">Expected names: <code>hero.jpg</code>, <code>og-cover.jpg</code>, and gallery images like <code>gallery-01.jpg</code> ... <code>gallery-06.jpg</code> in <code>/assets</code>. You can also use any names and map them in Dashboard.</p>
+          <div id="gallery-grid" class="gallery-grid"></div>
         </div>
       </section>
 
       <section class="section" id="programme">
         <div class="container">
           <h2>2026-2027 Programme</h2>
-          <p class="section-intro">
-            A full year of socials, business meetings, volunteering, national events, and international fellowship.
-          </p>
-          <div class="programme-grid">
-            <article class="month-card">
-              <h3>April 2026</h3>
-              <ul>
-                <li><time datetime="2026-04-01">01 Apr</time> AGM | KoD | Owner: JB</li>
-                <li><time datetime="2026-04-09">09 Apr</time> City of London AGM</li>
-                <li><time datetime="2026-04-11">11 Apr</time> Chigwell Charter</li>
-                <li><time datetime="2026-04-15">15 Apr</time> Albert Schloss Disko Wunderbar | Soho | Owner: Vedang</li>
-                <li><time datetime="2026-04-29">29 Apr</time> Star Wars Day | RT Pub | Owner: Vedang</li>
-              </ul>
-            </article>
-            <article class="month-card">
-              <h3>May 2026</h3>
-              <ul>
-                <li><time datetime="2026-05-01">01 May</time> Area 26 AGM | RT Pub</li>
-                <li><time datetime="2026-05-06">06 May</time> Business Meeting | RT Pub | Owner: Vedang</li>
-                <li><time datetime="2026-05-08">08-10 May</time> National AGM | Sheffield</li>
-                <li><time datetime="2026-05-20">20 May</time> NQ64 Arcade | Soho | Owner: Ryan</li>
-                <li><time datetime="2026-05-31">31 May</time> Volunteering: Felix Project | Poplar | Owner: Ryan</li>
-              </ul>
-            </article>
-            <article class="month-card">
-              <h3>June 2026</h3>
-              <ul>
-                <li><time datetime="2026-06-03">03 Jun</time> Padel | TBC | Owner: Satish</li>
-                <li><time datetime="2026-06-12">12-14 Jun</time> International Numbers Meet | Pargas, Finland</li>
-                <li><time datetime="2026-06-17">17 Jun</time> Zoo Night / England vs Croatia (9 PM) | Owner: Amz</li>
-              </ul>
-            </article>
-            <article class="month-card">
-              <h3>July 2026</h3>
-              <ul>
-                <li><time datetime="2026-07-01">01 Jul</time> Passyunk / Round of 32 | Waterloo / Fitzrovia | Owner: JB</li>
-                <li><time datetime="2026-07-02">02-05 Jul</time> Bushey &amp; Oxley Beer Festival | Three Crowns</li>
-                <li><time datetime="2026-07-05">05 Jul</time> F1 Silverstone (2 PM race) | Owner: David / Ryan</li>
-                <li><time datetime="2026-07-15">15 Jul</time> Crazy Boules | Mercato London Bridge | Owner: Amit</li>
-                <li><time datetime="2026-07-29">29 Jul</time> MI London vs London Spirits | The Oval | Owner: Amz</li>
-              </ul>
-            </article>
-            <article class="month-card">
-              <h3>August 2026</h3>
-              <ul>
-                <li><time datetime="2026-08-05">05 Aug</time> Thames Clipper River Pub Crawl | Owner: Ryan</li>
-                <li><time datetime="2026-08-19">19 Aug</time> Business Meeting | RT Pub (LWE) | Owner: Vedang</li>
-                <li><time datetime="2026-08-30">30 Aug</time> Picnic (Members &amp; Families) | Victoria Park | Owner: Vedang</li>
-              </ul>
-            </article>
-            <article class="month-card">
-              <h3>September 2026</h3>
-              <ul>
-                <li><time datetime="2026-09-02">02 Sep</time> American Pool | London | Owner: David</li>
-                <li><time datetime="2026-09-12">12-13 Sep</time> National: Westenders on Tour | TBD | Owner: Vedang</li>
-                <li><time datetime="2026-09-16">16-19 Sep</time> International: World Meeting | Italy</li>
-                <li><time datetime="2026-09-16">16 Sep</time> Weekend Away Wind-Down | London | Owner: Steve</li>
-                <li><time datetime="2026-09-30">30 Sep</time> Combined Social (Ladies Circle) | TBD | Owner: Jay</li>
-              </ul>
-            </article>
-            <article class="month-card">
-              <h3>October 2026</h3>
-              <ul>
-                <li><time datetime="2026-10-04">04 Oct</time> MS-UK Tower Walk | Tower 42 | Owner: Ryan</li>
-                <li><time datetime="2026-10-07">07 Oct</time> Whiskey Exchange Night | Owner: Jay</li>
-                <li><time datetime="2026-10-21">21 Oct</time> Combined London Tables Meeting | Owner: Vedang</li>
-                <li><time datetime="2026-10-31">31 Oct</time> Diwali Celebration (Members Only) | Owner: Vedang</li>
-              </ul>
-            </article>
-            <article class="month-card">
-              <h3>November 2026</h3>
-              <ul>
-                <li><time datetime="2026-11-04">04 Nov</time> Magic Night (Hosted by Ricky from City) | Owner: Ryan</li>
-                <li><time datetime="2026-11-18">18 Nov</time> Business Meeting | RT Pub (LWE) | Owner: Vedang</li>
-              </ul>
-            </article>
-            <article class="month-card">
-              <h3>December 2026</h3>
-              <ul>
-                <li><time datetime="2026-12-02">02 Dec</time> Hot Ones! Spicy Wing Night | Owner: Matteo</li>
-                <li><time datetime="2026-12-16">16 Dec</time> LWE Christmas Tour / Markets | Owner: Amz</li>
-                <li><time datetime="2026-12-30">30 Dec</time> Social Event | TBD</li>
-              </ul>
-            </article>
-            <article class="month-card">
-              <h3>January 2027</h3>
-              <ul>
-                <li><time datetime="2027-01-06">06 Jan</time> Board Game Night @ Draughts | Waterloo | Owner: JB</li>
-                <li><time datetime="2027-01-20">20 Jan</time> Fencing Class | Old Street | Owner: Vedang</li>
-                <li><time datetime="2027-01-31">31 Jan</time> Volunteering: Felix Project | Poplar | Owner: Ryan</li>
-              </ul>
-            </article>
-            <article class="month-card">
-              <h3>February 2027</h3>
-              <ul>
-                <li><time datetime="2027-02-03">03 Feb</time> Business Meeting | RT Pub (LWE) | Owner: Vedang</li>
-                <li><time datetime="2027-02-17">17 Feb</time> Duck Pin Bowling / Basketball Match | TBD | Owner: Amz</li>
-              </ul>
-            </article>
-            <article class="month-card">
-              <h3>March 2027</h3>
-              <ul>
-                <li><time datetime="2027-03-03">03 Mar</time> Dungeons &amp; Dragons | RT Pub (LWE) | Owner: Kyle</li>
-                <li><time datetime="2027-03-17">17 Mar</time> St. Patrick's Day Social | TBD</li>
-                <li><time datetime="2027-03-31">31 Mar</time> Ping Pong Night | Farringdon</li>
-              </ul>
-            </article>
-            <article class="month-card">
-              <h3>April 2027</h3>
-              <ul>
-                <li><time datetime="2027-04-07">07 Apr</time> AGM 2027 | TBD | Owner: Vedang</li>
-              </ul>
-            </article>
-          </div>
-          <p class="programme-note">
-            NB: Plans and locations are subject to change. Please check the WhatsApp group / Spond for updates.
-          </p>
+          <p class="muted">Plans and locations may change. Always check WhatsApp / Spond for latest updates.</p>
+          <div id="programme-grid" class="programme-grid"></div>
         </div>
       </section>
 
       <section class="section alt" id="tablers">
         <div class="container">
           <h2>Meet the Tablers</h2>
-          <p class="section-intro">A diverse and dynamic group bringing fellowship, service, leadership, and personality to London West End 623.</p>
-          <div class="tabler-grid">
-            <details class="tabler-card"><summary>Ryan Zammit <span>The Logistics Chief</span></summary><p>A man of refined, mechanical tastes—if it has an engine, a track, or a DRS wing, Ryan is interested. When he isn’t navigating his role as an IT Delivery Manager, he’s likely plotting his next travel escape or perfecting the art of the professional TV binge.</p></details>
-            <details class="tabler-card"><summary>Matteo <span>The Train Enthusiast</span></summary><p>A veteran Tabler with over five years of fellowship and roots at Rugby 113. He loves social chaos and community impact and has helped deliver legendary fireworks events raising over £100k for local causes.</p></details>
-            <details class="tabler-card"><summary>Amit Shah <span>The Tech Nomad</span></summary><p>Software Engineer and digital explorer. From craft beer and hidden-gem restaurants to films, games, and coding challenges, Amit blends curiosity and discipline with a passion for global travel.</p></details>
-            <details class="tabler-card"><summary>Steve <span>The Foundation</span></summary><p>One of the Phoenix founders who helped relaunch 623 in 2019. A Chartered Surveyor and sports enthusiast, Steve is the bedrock of the Table and happiest outdoors, whether on the golf course or hiking trails.</p></details>
-            <details class="tabler-card"><summary>John Bergqvist <span>The Forest Fellow</span></summary><p>Immediate Past Chairman (2025-26), originally from Sweden. A scientist at Imperial specializing in worms, John brings curiosity, fellowship, and strategic thinking to every conversation and event.</p></details>
-            <details class="tabler-card"><summary>Kyle "Mitchi" West <span>The Workshop Wizard</span></summary><p>Unapologetically nerdy and proud, Kyle brings DnD, anime, and comics energy to the Table. By day he supervises workshop operations in suitcase repair, and by night he strengthens the brotherhood spirit.</p></details>
-            <details class="tabler-card"><summary>Vedang Tyagi <span>The Global Heir</span></summary><p>A doctor by profession and a wholehearted “yes man” socially, Vedang grew up around Table in India. He balances clinical life with hosting, sport, travel, and relentless curiosity for learning.</p></details>
-            <details class="tabler-card"><summary>David Crow <span>The West End Maverick</span></summary><p>Always in motion, David moves between countries, city events, and creative spaces. One night he is on a red carpet, the next behind the decks as a DJ, always bringing stories and energy.</p></details>
-            <details class="tabler-card"><summary>Amrinder Chana <span>Area 6 Legend in London</span></summary><p>With over 14 years in Table and leadership across club and area level, Amrinder’s journey includes recognition as RTBI Area Chairman of the Year (2017-18). He now leads Area 26 for 2026-27.</p></details>
-            <details class="tabler-card"><summary>Jon Clark <span>The International Envoy</span></summary><p>A founding member of London West End 623 and National President for RTBI (2025-26), Jon has led at every level. His leadership, fellowship, and international perspective make him a cornerstone of modern Table life.</p></details>
-            <details class="tabler-card"><summary>Jay Shah <span>The Global Adrenaline Hunter</span></summary><p>A powerhouse in Table leadership across Eastern Africa and London, Jay combines business, tech, and social impact. From ultramarathons to mountain climbs, he is always chasing the next challenge.</p></details>
-          </div>
+          <div id="tablers-grid" class="tablers-grid"></div>
         </div>
       </section>
 
       <section class="section" id="visiting-book">
-        <div class="container visiting-grid">
+        <div class="container split">
           <div>
             <h2>The Visiting Book</h2>
-            <p class="section-intro">
-              National and international Tablers: leave us a digital note after visiting London or meeting the Westenders.
-            </p>
+            <p class="muted">National and international Tablers can leave a digital note after meeting the Westenders.</p>
+            <p><a id="admin-approve-link" class="btn btn-secondary" href="#" hidden>Open Admin Approval Dashboard</a></p>
             <form id="guestbook-form" class="guestbook-form">
-              <label>
-                Your name
-                <input type="text" name="name" required maxlength="60" />
-              </label>
-              <label>
-                Your Table / Club
-                <input type="text" name="club" required maxlength="80" />
-              </label>
-              <label>
-                Message
-                <textarea name="message" required maxlength="400" placeholder="Share your visit memory..."></textarea>
-              </label>
-              <button class="btn btn-primary" type="submit">Sign the Visiting Book</button>
-              <p class="form-note">Messages are stored in your browser for demo purposes. Connect Formspree for live submissions.</p>
+              <label>Name<input name="name" required maxlength="60" /></label>
+              <label>Table / Club<input name="club" required maxlength="80" /></label>
+              <label>Message<textarea name="message" required maxlength="400"></textarea></label>
+              <button class="btn btn-primary" type="submit">Sign the Book</button>
             </form>
           </div>
           <div>
             <h3>Recent Entries</h3>
-            <ul id="guestbook-list" class="guestbook-list" aria-live="polite"></ul>
+            <ul id="guestbook-list" class="entry-list"></ul>
+          </div>
+        </div>
+      </section>
+
+      <section class="section alt" id="faq">
+        <div class="container">
+          <h2>FAQ</h2>
+          <div class="faq-grid">
+            <details><summary>How do I join an event?</summary><p>Use our contact email or social channels to express interest.</p></details>
+            <details><summary>Can visiting Tablers attend socials?</summary><p>Yes, visitors are welcome. Please message us ahead of time.</p></details>
+            <details><summary>Where are updates published?</summary><p>Official updates are shared via WhatsApp and Spond.</p></details>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="dashboard">
+        <div class="container">
+          <h2>Content Dashboard</h2>
+          <p class="muted">No coding needed: edit text/images and save. Changes are stored in browser for quick editing.</p>
+          <div class="dash-grid">
+            <label>Hero title<input id="dash-hero-title" /></label>
+            <label>Hero subtitle<textarea id="dash-hero-subtitle"></textarea></label>
+            <label>About section<textarea id="dash-about"></textarea></label>
+            <label>Hero image path<input id="dash-hero-image" placeholder="assets/hero.jpg" /></label>
+            <label>Gallery images (one path per line)<textarea id="dash-gallery"></textarea></label>
+            <label>Guestbook submit API URL<input id="dash-submit-url" placeholder="https://script.google.com/.../exec" /></label>
+            <label>Guestbook approved feed URL<input id="dash-feed-url" placeholder="https://script.google.com/.../exec?mode=approved" /></label>
+            <label>Admin approval dashboard URL<input id="dash-admin-url" placeholder="https://script.google.com/.../exec?mode=admin" /></label>
+          </div>
+          <div class="hero-actions">
+            <button class="btn btn-primary" id="save-dashboard" type="button">Save Content</button>
+            <button class="btn btn-secondary" id="reset-dashboard" type="button">Reset to Default</button>
           </div>
         </div>
       </section>
     </main>
 
     <footer class="site-footer" id="contact">
-      <div class="container footer-grid">
+      <div class="container foot-grid">
         <div>
           <h2>Contact</h2>
-          <p>
-            Email: <a href="mailto:london.westend@roundtable.org.uk">london.westend@roundtable.org.uk</a>
-          </p>
-          <p>
-            Instagram:
-            <a href="https://www.instagram.com/rtlondonwestend?igsh=MTV6b2VrYTR6enh6bg==" target="_blank" rel="noreferrer">@rtlondonwestend</a>
-          </p>
-          <p>
-            Facebook:
-            <a href="https://www.facebook.com/share/1DAJHdvB5D/?mibextid=wwXIfr" target="_blank" rel="noreferrer">London West End Round Table</a>
-          </p>
+          <p>Email: <a href="mailto:london.westend@roundtable.org.uk">london.westend@roundtable.org.uk</a></p>
+          <p><a href="https://www.instagram.com/rtlondonwestend?igsh=MTV6b2VrYTR6enh6bg==" target="_blank" rel="noreferrer">Instagram</a></p>
+          <p><a href="https://www.facebook.com/share/1DAJHdvB5D/?mibextid=wwXIfr" target="_blank" rel="noreferrer">Facebook</a></p>
         </div>
-        <p class="footnote">© Round Table London West End No. 623</p>
+        <p>© Round Table London West End No. 623</p>
       </div>
     </footer>
 
