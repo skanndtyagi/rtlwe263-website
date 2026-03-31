@@ -179,17 +179,19 @@ const loadAdminState = () => {
   const heroTitle = adminGet('admin-hero-title');
   const heroSubtitle = adminGet('admin-hero-subtitle');
   const about = adminGet('admin-about');
+  const heroSlides = adminGet('admin-hero-slides');
   const heroImage = adminGet('admin-hero-image');
   const gallery = adminGet('admin-gallery');
   const submitUrl = adminGet('admin-submit-url');
   const feedUrl = adminGet('admin-feed-url');
   const adminUrl = adminGet('admin-admin-url');
 
-  if (!heroTitle || !heroSubtitle || !about || !heroImage || !gallery || !submitUrl || !feedUrl || !adminUrl) return;
+  if (!heroTitle || !heroSubtitle || !about || !heroSlides || !heroImage || !gallery || !submitUrl || !feedUrl || !adminUrl) return;
 
   heroTitle.value = data.heroTitle;
   heroSubtitle.value = data.heroSubtitle;
   about.value = data.about;
+  heroSlides.value = formatGallery(data.heroSlides || []);
   heroImage.value = data.heroImage;
   gallery.value = formatGallery(data.gallery);
   submitUrl.value = data.integrations.guestbookSubmitUrl;
@@ -209,17 +211,19 @@ const bindAdminEvents = () => {
     const heroTitle = adminGet('admin-hero-title');
     const heroSubtitle = adminGet('admin-hero-subtitle');
     const about = adminGet('admin-about');
+    const heroSlides = adminGet('admin-hero-slides');
     const heroImage = adminGet('admin-hero-image');
     const gallery = adminGet('admin-gallery');
     const submitUrl = adminGet('admin-submit-url');
     const feedUrl = adminGet('admin-feed-url');
     const adminUrl = adminGet('admin-admin-url');
 
-    if (!heroTitle || !heroSubtitle || !about) return;
+    if (!heroTitle || !heroSubtitle || !about || !heroSlides) return;
 
     data.heroTitle = heroTitle.value.trim();
     data.heroSubtitle = heroSubtitle.value.trim();
     data.about = about.value.trim();
+    data.heroSlides = heroSlides ? parseGallery(heroSlides.value) : [];
     data.heroImage = heroImage.value.trim() || defaultData.heroImage;
     data.gallery = gallery ? parseGallery(gallery.value) : [];
     data.programme = collectEventRows();
