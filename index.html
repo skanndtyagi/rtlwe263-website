@@ -44,7 +44,7 @@
           <a href="#tablers">Tablers</a>
           <a href="#visiting-book">Visiting Book</a>
           <a href="#contact">Contact</a>
-          <a href="admin.html">Admin</a>
+          <a href="admin-login.html">Admin</a>
         </nav>
       </div>
     </header>
@@ -67,6 +67,7 @@
           <div class="hero-meta">
             <span>Socials</span><span>Service</span><span>International Fellowship</span>
           </div>
+          <div id="hero-slide-caption" class="hero-slide-caption"></div>
         </div>
       </section>
 
@@ -146,26 +147,23 @@
         </div>
       </section>
 
-      <section class="section" id="dashboard">
-        <div class="container">
-          <h2>Content Dashboard</h2>
-          <p class="muted">No coding needed: edit text/images and save. Changes are stored in browser for quick editing.</p>
-          <div class="dash-grid">
-            <label>Hero title<input id="dash-hero-title" /></label>
-            <label>Hero subtitle<textarea id="dash-hero-subtitle"></textarea></label>
-            <label>About section<textarea id="dash-about"></textarea></label>
-            <label>Hero image path<input id="dash-hero-image" placeholder="assets/hero.jpg" /></label>
-            <label>Gallery images + captions (one per line: path | caption)<textarea id="dash-gallery" placeholder="assets/gallery-01.jpg | Brotherhood night in Soho"></textarea></label>
-            <label>Guestbook submit API URL<input id="dash-submit-url" placeholder="https://script.google.com/.../exec" /></label>
-            <label>Guestbook approved feed URL<input id="dash-feed-url" placeholder="https://script.google.com/.../exec?mode=approved" /></label>
-            <label>Admin approval dashboard URL<input id="dash-admin-url" placeholder="https://script.google.com/.../exec?mode=admin" /></label>
-          </div>
-          <div class="hero-actions">
-            <button class="btn btn-primary" id="save-dashboard" type="button">Save Content</button>
-            <button class="btn btn-secondary" id="reset-dashboard" type="button">Reset to Default</button>
+      <div id="event-detail" class="event-detail hidden">
+        <div class="event-detail-panel">
+          <button id="close-event-detail" class="btn btn-secondary">Close</button>
+          <h2 id="detail-title"></h2>
+          <p id="detail-description"></p>
+          <dl class="event-detail-list">
+            <div><dt>Date</dt><dd id="detail-date"></dd></div>
+            <div><dt>Time</dt><dd id="detail-time"></dd></div>
+            <div><dt>Location</dt><dd id="detail-location"></dd></div>
+            <div><dt>Contact</dt><dd id="detail-contact"></dd></div>
+          </dl>
+          <div class="hero-actions event-detail-actions">
+            <a id="detail-map-link" class="btn btn-primary" target="_blank" rel="noreferrer">Open in Maps</a>
+            <a id="detail-calendar-link" class="btn btn-secondary" target="_blank" rel="noreferrer">Add to Calendar</a>
           </div>
         </div>
-      </section>
+      </div>
     </main>
 
     <footer class="site-footer" id="contact">
