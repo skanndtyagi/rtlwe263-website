@@ -53,3 +53,12 @@ Open `index.html` in a browser for the public site, or use `admin-login.html` to
 - The homepage no longer exposes the CMS.
 - Photo gallery updates are managed through the admin panel.
 - The hero banner now cycles through gallery images automatically.
+
+## Backend migration plan
+
+This repo now includes a Supabase backend plan for turning the current site into a real CMS:
+
+- `supabase/schema.sql` contains the DB schema for content, hero slides, gallery images, events, tablers, guestbook entries, and media.
+- `backend-plan.md` describes the exact Supabase + Vercel migration steps.
+
+If you want, I can now continue by wiring Supabase into `script.js` and `admin.js` so the dashboard becomes live-backed instead of localStorage-based.
