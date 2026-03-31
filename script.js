@@ -9,15 +9,14 @@ const defaultData = {
     'A modern fellowship community for men under 45 — blending friendship, community impact, and unforgettable London socials.',
   about:
     'We are a vibrant Round Table based in central London. Across the year we host social nights, business meetings, volunteering initiatives, and national/international events. Our mission is simple: meaningful friendship, personal growth, and doing good while having fun.',
-  heroImage: 'assets/hero.jpg',
-  gallery: [
-    { src: 'assets/gallery-01.jpg', caption: 'Brotherhood night in the West End' },
-    { src: 'assets/gallery-02.jpg', caption: 'International fellowship and visiting tablers' },
-    { src: 'assets/gallery-03.jpg', caption: 'Westenders social evening' },
-    { src: 'assets/gallery-04.jpg', caption: 'Community and service in action' },
-    { src: 'assets/gallery-05.jpg', caption: 'Club pride and chapter identity' },
-    { src: 'assets/gallery-06.jpg', caption: 'Memorable moments across the programme' },
+  heroImage: 'assets/hero-01.jpg',
+  heroSlides: [
+    { src: 'assets/hero-01.jpg', caption: 'West End fellowship in action' },
+    { src: 'assets/hero-02.jpg', caption: 'Evening socials and community connection' },
+    { src: 'assets/hero-03.jpg', caption: 'Nightlife, friendship and service' },
+    { src: 'assets/hero-04.jpg', caption: 'London West End Tablers on a mission' },
   ],
+  gallery: [],
   integrations: {
     guestbookSubmitUrl: '',
     guestbookFeedUrl: '',
@@ -162,7 +161,7 @@ let heroSlides = [];
 let heroIndex = 0;
 let heroTimer = null;
 
-const getSlides = () => (Array.isArray(data.gallery) && data.gallery.length ? data.gallery : [{ src: data.heroImage, caption: '' }]);
+const getSlides = () => (Array.isArray(data.heroSlides) && data.heroSlides.length ? data.heroSlides : [{ src: data.heroImage, caption: '' }]);
 
 const updateHeroSlide = (index) => {
   const slides = getSlides();
@@ -245,6 +244,10 @@ const renderTopContent = () => {
 const renderGallery = () => {
   const galleryGrid = getById('gallery-grid');
   if (!galleryGrid) return;
+  if (!Array.isArray(data.gallery) || data.gallery.length === 0) {
+    galleryGrid.innerHTML = '<div class="gallery-empty">No gallery images are configured yet. Add them from the admin dashboard.</div>';
+    return;
+  }
   galleryGrid.innerHTML = data.gallery
     .map((item, i) => {
       const src = item?.src || item;
