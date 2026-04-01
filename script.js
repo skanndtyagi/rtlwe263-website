@@ -550,24 +550,28 @@ const renderTablers = () => {
         </article>`)
       .join('');
     
-    // Simple tap-to-expand using event delegation
-    grid.addEventListener('click', (e) => {
-      const card = e.target.closest('.tabler-mobile');
-      if (card) {
-        e.stopPropagation();
-        const bioDiv = card.querySelector('.tabler-bio-expand');
-        if (bioDiv) bioDiv.style.display = bioDiv.style.display === 'none' ? 'block' : 'none';
-      }
-    });
-    
-    // Keyboard support
-    grid.addEventListener('keydown', (e) => {
-      if ((e.key === 'Enter' || e.key === ' ') && e.target.classList.contains('tabler-mobile')) {
-        e.preventDefault();
-        const bioDiv = e.target.querySelector('.tabler-bio-expand');
-        if (bioDiv) bioDiv.style.display = bioDiv.style.display === 'none' ? 'block' : 'none';
-      }
-    });
+    if (!grid.dataset.mobileTablersBound) {
+      // Simple tap-to-expand using event delegation
+      grid.addEventListener('click', (e) => {
+        const card = e.target.closest('.tabler-mobile');
+        if (card) {
+          e.stopPropagation();
+          const bioDiv = card.querySelector('.tabler-bio-expand');
+          if (bioDiv) bioDiv.style.display = bioDiv.style.display === 'none' ? 'block' : 'none';
+        }
+      });
+
+      // Keyboard support
+      grid.addEventListener('keydown', (e) => {
+        if ((e.key === 'Enter' || e.key === ' ') && e.target.classList.contains('tabler-mobile')) {
+          e.preventDefault();
+          const bioDiv = e.target.querySelector('.tabler-bio-expand');
+          if (bioDiv) bioDiv.style.display = bioDiv.style.display === 'none' ? 'block' : 'none';
+        }
+      });
+
+      grid.dataset.mobileTablersBound = 'true';
+    }
   } else {
     // Desktop: 3D flip on hover
     grid.innerHTML = data.tablers
