@@ -1145,9 +1145,9 @@ input:focus, textarea:focus, select:focus {
 .chairman-profile img {
   display: block;
   width: 100%;
-  aspect-ratio: 3 / 4;
+  height: 195px;
   object-fit: cover;
-  object-position: center 10%;
+  object-position: center 12%;
 }
 .chairman-profile figcaption {
   display: grid;
