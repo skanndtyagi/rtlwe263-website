@@ -533,47 +533,59 @@ const renderTablers = () => {
   const grid = getById('tablers-grid');
   if (!grid) return;
   grid.classList.remove('stagger');
-  grid.innerHTML = data.tablers
-    .map((t, i) => `<article class="tabler-card" role="button" tabindex="0" style="animation-delay:${(i * 80)}ms">
-        <div class="tabler-card-inner">
+  
+  // Touch devices: expandable card layout (no 3D flip)
+  if (window.matchMedia('(hover: none)').matches) {
+    grid.innerHTML = data.tablers
+      .map((t, i) => `<article class="tabler-card tabler-mobile" role="button" tabindex="0" style="animation-delay:${(i * 80)}ms" data-name="${esc(t.name)}">
           <div class="tabler-front">
             <img src="${esc(t.photo || 'assets/tabler-placeholder.jpg')}" alt="${esc(t.name)}" loading="lazy" />
             <h3>${esc(t.name)}</h3>
             <p class="title">${esc(t.title)}</p>
-            <p class="tap-note">Tap to flip &middot; Hover to see bio</p>
+            <p class="tap-note">Tap for bio</p>
           </div>
-          <div class="tabler-back">
-            <p class="title">${esc(t.title)}</p>
+          <div class="tabler-bio-expand" style="display:none;">
             <p>${esc(t.bio)}</p>
           </div>
-        </div>
-      </article>`)
-    .join('');
-
-  // Event delegation on grid for touch devices
-  if (window.matchMedia('(hover: none)').matches) {
+        </article>`)
+      .join('');
+    
+    // Simple tap-to-expand using event delegation
     grid.addEventListener('click', (e) => {
-      const card = e.target.closest('.tabler-card');
+      const card = e.target.closest('.tabler-mobile');
       if (card) {
         e.stopPropagation();
-        card.classList.toggle('flipped');
+        const bioDiv = card.querySelector('.tabler-bio-expand');
+        if (bioDiv) bioDiv.style.display = bioDiv.style.display === 'none' ? 'block' : 'none';
       }
     });
-    grid.addEventListener('touchend', (e) => {
-      const card = e.target.closest('.tabler-card');
-      if (card) {
-        e.stopPropagation();
-        e.preventDefault();
-        card.classList.toggle('flipped');
-      }
-    });
-    // Keyboard: Enter/Space to flip
+    
+    // Keyboard support
     grid.addEventListener('keydown', (e) => {
-      if ((e.key === 'Enter' || e.key === ' ') && e.target.classList.contains('tabler-card')) {
+      if ((e.key === 'Enter' || e.key === ' ') && e.target.classList.contains('tabler-mobile')) {
         e.preventDefault();
-        e.target.classList.toggle('flipped');
+        const bioDiv = e.target.querySelector('.tabler-bio-expand');
+        if (bioDiv) bioDiv.style.display = bioDiv.style.display === 'none' ? 'block' : 'none';
       }
     });
+  } else {
+    // Desktop: 3D flip on hover
+    grid.innerHTML = data.tablers
+      .map((t, i) => `<article class="tabler-card" style="animation-delay:${(i * 80)}ms">
+          <div class="tabler-card-inner">
+            <div class="tabler-front">
+              <img src="${esc(t.photo || 'assets/tabler-placeholder.jpg')}" alt="${esc(t.name)}" loading="lazy" />
+              <h3>${esc(t.name)}</h3>
+              <p class="title">${esc(t.title)}</p>
+              <p class="tap-note">Hover to see bio</p>
+            </div>
+            <div class="tabler-back">
+              <p class="title">${esc(t.title)}</p>
+              <p>${esc(t.bio)}</p>
+            </div>
+          </div>
+        </article>`)
+      .join('');
   }
 };
 
