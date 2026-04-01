@@ -673,12 +673,13 @@ const handleFileUpload = async (files, album, progressEl, photoGrid) => {
     progressEl.textContent = `Compressing & uploading ${i + 1} of ${fileArr.length}…`;
     const url = await uploadGalleryFile(fileArr[i], album.event_name);
     if (url) {
+      const existingCount = photoGrid.querySelectorAll('.gallery-photo-item').length;
       const { data: newRecord, error: dbError } = await SUPABASE.from('gallery_images').insert({
         src: url,
         caption: '',
         event_name: album.event_name,
         event_date: album.event_date || null,
-        order: Date.now() + i,
+        order: existingCount + i,
         active: true,
       }).select().single();
       if (dbError) {

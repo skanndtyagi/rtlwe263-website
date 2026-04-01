@@ -32,6 +32,8 @@ create table if not exists gallery_images (
 -- Migration: add event columns if upgrading from an earlier schema
 alter table gallery_images add column if not exists event_name text default 'General';
 alter table gallery_images add column if not exists event_date date;
+-- Migration: widen order column to bigint if it was created as integer
+alter table gallery_images alter column "order" type bigint using "order"::bigint;
 
 -- Enable Row Level Security
 alter table gallery_images enable row level security;
