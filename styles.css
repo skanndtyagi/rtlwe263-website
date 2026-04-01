@@ -68,20 +68,26 @@ a { color: var(--gold); }
   inset: 0;
   background: linear-gradient(
     100deg,
-    rgba(6, 10, 20, 0.96) 0%,
-    rgba(6, 10, 20, 0.82) 38%,
-    rgba(6, 10, 20, 0.38) 62%,
-    rgba(6, 10, 20, 0.04) 100%
+    rgba(6, 10, 20, 0.65) 0%,
+    rgba(6, 10, 20, 0.35) 50%,
+    rgba(6, 10, 20, 0.05) 100%
   );
 }
-/* Text column — left-aligned, max 520px, stacked vertically */
+/* Text column — glass card on the left, photo visible to the right */
 .hero-content {
   position: relative;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   gap: 0;
-  max-width: 520px;
+  max-width: 540px;
+  background: rgba(6, 10, 20, 0.62);
+  backdrop-filter: blur(18px) saturate(1.4);
+  -webkit-backdrop-filter: blur(18px) saturate(1.4);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: 20px;
+  padding: 2.4rem 2.2rem 2rem;
+  box-shadow: 0 8px 48px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255,255,255,0.06);
 }
 .hero-logo {
   display: block;
@@ -376,14 +382,13 @@ a { color: var(--gold); }
 }
 @media (max-width: 900px) {
   .hero { min-height: 100svh; align-items: flex-end; }
-  .hero .container { padding-bottom: 3.5rem; }
-  .hero-content { max-width: 100%; }
+  .hero .container { padding-bottom: 3rem; }
+  .hero-content { max-width: 100%; border-radius: 16px; padding: 1.8rem 1.4rem 1.6rem; }
   .hero-overlay {
     background: linear-gradient(
       to top,
-      rgba(6, 10, 20, 0.97) 0%,
-      rgba(6, 10, 20, 0.80) 38%,
-      rgba(6, 10, 20, 0.28) 68%,
+      rgba(6, 10, 20, 0.80) 0%,
+      rgba(6, 10, 20, 0.25) 60%,
       rgba(6, 10, 20, 0.04) 100%
     );
   }
