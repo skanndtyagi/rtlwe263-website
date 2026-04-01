@@ -533,9 +533,10 @@ const renderTablers = () => {
   const grid = getById('tablers-grid');
   if (!grid) return;
   grid.classList.remove('stagger');
+  const isMobileTablerView = window.matchMedia('(max-width: 920px), (hover: none), (pointer: coarse)').matches;
   
   // Touch devices: expandable card layout (no 3D flip)
-  if (window.matchMedia('(hover: none)').matches) {
+  if (isMobileTablerView) {
     grid.innerHTML = data.tablers
       .map((t, i) => `<article class="tabler-card tabler-mobile" style="animation-delay:${(i * 80)}ms" data-name="${esc(t.name)}">
           <div class="tabler-front">
