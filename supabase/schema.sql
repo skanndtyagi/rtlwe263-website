@@ -21,11 +21,49 @@ create table if not exists gallery_images (
   id uuid default gen_random_uuid() primary key,
   src text not null,
   caption text,
-  "order" int default 0,
+  event_name text default 'General',
+  event_date date,
+  "order" bigint default 0,
   active boolean default true,
   created_at timestamp with time zone default now(),
   updated_at timestamp with time zone default now()
 );
+
+-- Migration: add event columns if upgrading from an earlier schema
+alter table gallery_images add column if not exists event_name text default 'General';
+alter table gallery_images add column if not exists event_date date;
+
+-- Enable Row Level Security
+alter table gallery_images enable row level security;
+-- Public can read active gallery images
+create policy if not exists "Public gallery images readable"
+  on gallery_images for select to anon
+  using (active = true);
+-- Authenticated (admin) can do everything
+create policy if not exists "Authenticated users manage gallery"
+  on gallery_images for all to authenticated
+  using (true) with check (true);
+
+-- ----------------------------------------------------------------
+-- Supabase Storage bucket for gallery photo uploads
+-- Run these lines OR create the bucket via the Supabase Dashboard:
+--   Name: gallery   |   Public: ON
+-- ----------------------------------------------------------------
+insert into storage.buckets (id, name, public)
+  values ('gallery', 'gallery', true)
+  on conflict (id) do nothing;
+
+-- Allow public to read gallery files
+create policy if not exists "Public gallery reads"
+  on storage.objects for select to anon
+  using (bucket_id = 'gallery');
+-- Allow authenticated admin to upload / delete gallery files
+create policy if not exists "Admin gallery uploads"
+  on storage.objects for insert to authenticated
+  with check (bucket_id = 'gallery');
+create policy if not exists "Admin gallery deletes"
+  on storage.objects for delete to authenticated
+  using (bucket_id = 'gallery');
 
 create table if not exists programme_events (
   id uuid default gen_random_uuid() primary key,
@@ -52,7 +90,7 @@ create table if not exists tablers (
   updated_at timestamp with time zone default now()
 );
 
-create type guestbook_status as enum ('pending', 'approved', 'rejected');
+create type if not exists guestbook_status as enum ('pending', 'approved', 'rejected');
 
 create table if not exists guestbook_entries (
   id uuid default gen_random_uuid() primary key,

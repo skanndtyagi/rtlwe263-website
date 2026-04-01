@@ -88,17 +88,23 @@
           <div class="admin-panel-header">
             <div>
               <h1 class="admin-panel-title">Gallery</h1>
-              <p class="muted">Manage the Gallery Highlights section on the homepage.</p>
+              <p class="muted">Organise photos into event albums. Uploads go live on the site immediately.</p>
             </div>
-            <button class="btn btn-primary" id="admin-save-gallery">Save Changes</button>
+            <button class="btn btn-primary" id="admin-create-album">+ New Album</button>
           </div>
-          <div class="admin-card">
-            <div class="admin-card-header-row">
-              <h3 class="admin-card-title">Gallery images</h3>
-              <button class="btn btn-secondary" id="admin-add-gallery-image">+ Add image</button>
+          <div class="admin-card" id="admin-new-album-form" style="display:none">
+            <h3 class="admin-card-title">Create new album</h3>
+            <div class="admin-field-group admin-field-group-inline">
+              <label>Album / Event name<input id="new-album-name" placeholder="e.g. AGM Night 2026" /></label>
+              <label>Event date (optional)<input id="new-album-date" type="date" /></label>
             </div>
-            <p class="muted" style="margin-bottom:1rem">Paste a public image URL for each photo. The first image will be featured larger. Add an optional caption shown on hover.</p>
-            <div id="admin-gallery-list" class="admin-image-rows"></div>
+            <div style="display:flex;gap:.6rem;margin-top:.4rem">
+              <button class="btn btn-primary" id="admin-confirm-album">Create Album</button>
+              <button class="btn btn-secondary" id="admin-cancel-album">Cancel</button>
+            </div>
+          </div>
+          <div id="admin-gallery-albums">
+            <p class="muted" style="padding:1.5rem 0">Loading albums…</p>
           </div>
         </div>
 

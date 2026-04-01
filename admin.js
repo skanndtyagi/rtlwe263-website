@@ -203,18 +203,6 @@ const showAdminMessage = (text, type = 'notice') => {
   showAdminMessage._timer = setTimeout(() => { if (msg) msg.classList.remove('visible'); }, 3500);
 };
 
-const readFallbackEntries = () => {
-  try {
-    return JSON.parse(localStorage.getItem('lwe623-guestbook-fallback') || '[]');
-  } catch {
-    return [];
-  }
-};
-
-const writeFallbackEntries = (entries) => {
-  localStorage.setItem('lwe623-guestbook-fallback', JSON.stringify(entries));
-};
-
 const readApprovedEntries = () => {
   try {
     return JSON.parse(localStorage.getItem(GUESTBOOK_APPROVED_KEY) || '[]');
@@ -349,7 +337,6 @@ const loadAdminState = () => {
   if (heroSubtitle) heroSubtitle.value = data.heroSubtitle || '';
   if (about) about.value = data.about || '';
   renderImageRows('admin-hero-slide-list', data.heroSlides || []);
-  renderImageRows('admin-gallery-list', data.gallery || []);
   renderEventEditor(data.programme);
   renderTablerEditor(data.tablers);
   const submitUrl = adminGet('admin-submit-url');
@@ -373,12 +360,10 @@ const bindAdminEvents = () => {
     if (list) list.appendChild(createImageRow({}));
   });
 
-  // Gallery
-  adminSafe('admin-save-gallery', 'click', saveGallery);
-  adminSafe('admin-add-gallery-image', 'click', () => {
-    const list = adminGet('admin-gallery-list');
-    if (list) list.appendChild(createImageRow({}));
-  });
+  // Gallery — handled by renderGalleryAdmin()
+  adminSafe('admin-create-album', 'click', showCreateAlbumForm);
+  adminSafe('admin-cancel-album', 'click', hideCreateAlbumForm);
+  adminSafe('admin-confirm-album', 'click', createAlbum);
 
   // Programme
   adminSafe('admin-save-events', 'click', saveEvents);
@@ -431,9 +416,300 @@ const bindAdminEvents = () => {
   }
 };
 
+// ============================================================
+// Gallery Album Management
+// ============================================================
+
+const formatDisplayDate = (dateStr) => {
+  if (!dateStr) return '';
+  const d = new Date(dateStr + 'T00:00:00');
+  return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+};
+
+const uploadGalleryFile = async (file, eventName) => {
+  if (!isSupabaseReady()) {
+    showAdminMessage('Supabase not configured – cannot upload files.', 'notice');
+    return null;
+  }
+  const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
+  const path = `gallery/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+  const { error } = await SUPABASE.storage.from('gallery').upload(path, file, {
+    cacheControl: '3600',
+    upsert: false,
+  });
+  if (error) {
+    console.warn('Upload error:', error.message || error);
+    showAdminMessage(`Upload failed: ${error.message || 'unknown error'}`, 'notice');
+    return null;
+  }
+  const { data: urlData } = SUPABASE.storage.from('gallery').getPublicUrl(path);
+  return urlData?.publicUrl || null;
+};
+
+const fetchGalleryAlbums = async () => {
+  if (!isSupabaseReady()) return [];
+  const { data: rows, error } = await SUPABASE
+    .from('gallery_images')
+    .select('*')
+    .eq('active', true)
+    .order('event_date', { ascending: false })
+    .order('order', { ascending: true });
+  if (error || !rows) return [];
+  const albumMap = {};
+  rows.forEach((img) => {
+    const key = img.event_name || 'Uncategorised';
+    if (!albumMap[key]) {
+      albumMap[key] = { id: key, event_name: key, event_date: img.event_date || '', photos: [] };
+    }
+    albumMap[key].photos.push(img);
+  });
+  return Object.values(albumMap);
+};
+
+const renderGalleryAdmin = async () => {
+  const container = adminGet('admin-gallery-albums');
+  if (!container) return;
+  container.innerHTML = '<p class="muted" style="padding:1rem 0">Loading albums…</p>';
+  const albums = await fetchGalleryAlbums();
+  if (!albums.length) {
+    container.innerHTML = '<p class="muted" style="padding:1rem 0">No albums yet. Click <strong>+ New Album</strong> to create your first event album.</p>';
+    return;
+  }
+  container.innerHTML = '';
+  albums.forEach((album) => container.appendChild(createAlbumCard(album)));
+};
+
+const createAlbumCard = (album) => {
+  const card = document.createElement('div');
+  card.className = 'gallery-album-card admin-card';
+  card.dataset.albumId = album.id;
+  const thumbs = album.photos.slice(0, 5).map((p) => `<img class="gallery-album-thumb" src="${esc(p.src)}" alt="" />`).join('');
+  const extra = album.photos.length > 5 ? `<div class="gallery-album-extra">+${album.photos.length - 5}</div>` : '';
+  card.innerHTML = `
+    <div class="gallery-album-header">
+      <div class="gallery-album-info">
+        <h3 class="gallery-album-name">${esc(album.event_name)}</h3>
+        <span class="muted gallery-album-meta">${album.event_date ? formatDisplayDate(album.event_date) : 'No date'} &middot; ${album.photos.length} photo${album.photos.length !== 1 ? 's' : ''}</span>
+      </div>
+      <div class="gallery-album-actions">
+        <button class="btn btn-secondary gallery-btn-manage">Manage photos</button>
+        <button class="btn btn-secondary gallery-btn-del-album">Delete album</button>
+      </div>
+    </div>
+    <div class="gallery-album-preview">${thumbs}${extra}</div>
+    <div class="gallery-album-body hidden"></div>
+  `;
+  card.querySelector('.gallery-btn-manage').addEventListener('click', () => toggleAlbumBody(album, card));
+  card.querySelector('.gallery-btn-del-album').addEventListener('click', () => confirmDeleteAlbum(album));
+  return card;
+};
+
+const toggleAlbumBody = async (album, card) => {
+  const body = card.querySelector('.gallery-album-body');
+  if (!body) return;
+  if (!body.classList.contains('hidden')) {
+    body.classList.add('hidden');
+    body.innerHTML = '';
+    return;
+  }
+  body.innerHTML = '<p class="muted" style="padding:.8rem 0">Loading photos…</p>';
+  body.classList.remove('hidden');
+  let photos = [];
+  if (isSupabaseReady()) {
+    const { data: rows } = await SUPABASE
+      .from('gallery_images')
+      .select('*')
+      .eq('event_name', album.event_name)
+      .eq('active', true)
+      .order('order', { ascending: true });
+    photos = rows || [];
+  }
+  renderAlbumBody(body, album, photos);
+};
+
+const renderAlbumBody = (body, album, photos) => {
+  body.innerHTML = `
+    <div class="gallery-album-edit-meta">
+      <div class="admin-field-group admin-field-group-inline" style="flex:1">
+        <label>Album name<input class="album-name-input" value="${esc(album.event_name)}" /></label>
+        <label>Event date<input class="album-date-input" type="date" value="${esc(album.event_date || '')}" /></label>
+      </div>
+      <button class="btn btn-primary gallery-btn-save-meta" style="align-self:flex-end">Save details</button>
+    </div>
+    <div class="gallery-upload-zone">
+      <svg width="36" height="36" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      <p>Drag &amp; drop photos here, or <label class="gallery-upload-label">browse files<input type="file" class="gallery-file-input" accept="image/*" multiple /></label></p>
+      <p class="muted" style="font-size:.8rem">Multi-file batch upload supported. JPG, PNG, WEBP.</p>
+      <div class="gallery-upload-progress hidden"></div>
+    </div>
+    <div class="gallery-photo-grid">
+      ${photos.map((p) => createPhotoItemHTML(p)).join('')}
+    </div>
+  `;
+
+  // Save album meta
+  body.querySelector('.gallery-btn-save-meta').addEventListener('click', async () => {
+    const newName = body.querySelector('.album-name-input').value.trim();
+    const newDate = body.querySelector('.album-date-input').value;
+    if (!newName) { showAdminMessage('Album name cannot be empty.', 'notice'); return; }
+    if (isSupabaseReady()) {
+      await SUPABASE.from('gallery_images')
+        .update({ event_name: newName, event_date: newDate || null })
+        .eq('event_name', album.event_name);
+    }
+    album.event_name = newName;
+    album.event_date = newDate;
+    const card = body.closest('.gallery-album-card');
+    if (card) {
+      const nameEl = card.querySelector('.gallery-album-name');
+      const metaEl = card.querySelector('.gallery-album-meta');
+      if (nameEl) nameEl.textContent = newName;
+      if (metaEl) metaEl.textContent = `${newDate ? formatDisplayDate(newDate) : 'No date'} · ${photos.length} photo${photos.length !== 1 ? 's' : ''}`;
+      card.dataset.albumId = newName;
+    }
+    showAdminMessage('Album details saved.');
+  });
+
+  // File upload
+  const fileInput = body.querySelector('.gallery-file-input');
+  const uploadZone = body.querySelector('.gallery-upload-zone');
+  const progressEl = body.querySelector('.gallery-upload-progress');
+  const photoGrid = body.querySelector('.gallery-photo-grid');
+
+  fileInput.addEventListener('change', () => handleFileUpload(fileInput.files, album, progressEl, photoGrid));
+  uploadZone.addEventListener('dragover', (e) => { e.preventDefault(); uploadZone.classList.add('drag-over'); });
+  uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('drag-over'));
+  uploadZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    uploadZone.classList.remove('drag-over');
+    handleFileUpload(e.dataTransfer.files, album, progressEl, photoGrid);
+  });
+
+  // Bind existing photo actions
+  body.querySelectorAll('.gallery-photo-item').forEach((item) => bindPhotoItemActions(item));
+};
+
+const createPhotoItemHTML = (photo) => `
+  <div class="gallery-photo-item" data-id="${esc(photo.id)}">
+    <div class="gallery-photo-img-wrap">
+      <img src="${esc(photo.src)}" alt="${esc(photo.caption || '')}" loading="lazy" />
+    </div>
+    <div class="gallery-photo-caption-row">
+      <input class="gallery-caption-input" value="${esc(photo.caption || '')}" placeholder="Add a caption…" />
+      <button class="btn btn-secondary gallery-btn-save-caption">Save</button>
+      <button class="btn btn-secondary gallery-btn-del-photo">✕</button>
+    </div>
+  </div>
+`;
+
+const bindPhotoItemActions = (item) => {
+  const id = item.dataset.id;
+  const saveBtn = item.querySelector('.gallery-btn-save-caption');
+  if (saveBtn) {
+    saveBtn.addEventListener('click', async () => {
+      const caption = item.querySelector('.gallery-caption-input').value.trim();
+      if (isSupabaseReady()) {
+        const { error } = await SUPABASE.from('gallery_images').update({ caption }).eq('id', id);
+        if (error) { showAdminMessage('Failed to save caption.', 'notice'); return; }
+      }
+      showAdminMessage('Caption saved.');
+    });
+  }
+  const delBtn = item.querySelector('.gallery-btn-del-photo');
+  if (delBtn) {
+    delBtn.addEventListener('click', async () => {
+      if (!confirm('Delete this photo from the gallery?')) return;
+      if (isSupabaseReady()) {
+        await SUPABASE.from('gallery_images').update({ active: false }).eq('id', id);
+      }
+      item.remove();
+      showAdminMessage('Photo removed.');
+    });
+  }
+};
+
+const handleFileUpload = async (files, album, progressEl, photoGrid) => {
+  if (!files || !files.length) return;
+  if (!isSupabaseReady()) {
+    showAdminMessage('Supabase storage not configured — cannot upload files.', 'notice');
+    return;
+  }
+  const fileArr = Array.from(files);
+  progressEl.classList.remove('hidden');
+  progressEl.textContent = `Uploading 0 of ${fileArr.length}…`;
+  let uploaded = 0;
+  for (const file of fileArr) {
+    const url = await uploadGalleryFile(file, album.event_name);
+    if (url) {
+      const { data: newRecord } = await SUPABASE.from('gallery_images').insert({
+        src: url,
+        caption: '',
+        event_name: album.event_name,
+        event_date: album.event_date || null,
+        order: Date.now(),
+        active: true,
+      }).select().single();
+      if (newRecord) {
+        const temp = document.createElement('div');
+        temp.innerHTML = createPhotoItemHTML(newRecord);
+        const item = temp.firstElementChild;
+        photoGrid.appendChild(item);
+        bindPhotoItemActions(item);
+      }
+    }
+    uploaded++;
+    progressEl.textContent = `Uploading ${uploaded} of ${fileArr.length}…`;
+  }
+  progressEl.textContent = `✓ ${uploaded} photo${uploaded !== 1 ? 's' : ''} uploaded.`;
+  setTimeout(() => progressEl.classList.add('hidden'), 3000);
+};
+
+const confirmDeleteAlbum = async (album) => {
+  if (!confirm(`Delete the "${album.event_name}" album and all its photos? This cannot be undone.`)) return;
+  if (isSupabaseReady()) {
+    await SUPABASE.from('gallery_images').update({ active: false }).eq('event_name', album.event_name);
+  }
+  showAdminMessage(`Album "${album.event_name}" deleted.`);
+  await renderGalleryAdmin();
+};
+
+const showCreateAlbumForm = () => {
+  const form = adminGet('admin-new-album-form');
+  if (form) form.style.display = '';
+  const nameInput = adminGet('new-album-name');
+  if (nameInput) { nameInput.value = ''; nameInput.focus(); }
+};
+
+const hideCreateAlbumForm = () => {
+  const form = adminGet('admin-new-album-form');
+  if (form) form.style.display = 'none';
+};
+
+const createAlbum = async () => {
+  const nameInput = adminGet('new-album-name');
+  const dateInput = adminGet('new-album-date');
+  const name = nameInput?.value.trim();
+  if (!name) { showAdminMessage('Please enter an album name.', 'notice'); return; }
+  hideCreateAlbumForm();
+  const album = { id: name, event_name: name, event_date: dateInput?.value || '', photos: [] };
+  const container = adminGet('admin-gallery-albums');
+  if (container) {
+    const emptyMsg = container.querySelector('p.muted');
+    if (emptyMsg) container.innerHTML = '';
+    const card = createAlbumCard(album);
+    container.insertBefore(card, container.firstChild);
+    // Auto-expand the new album for immediate photo upload
+    toggleAlbumBody(album, card);
+  }
+  showAdminMessage(`Album "${name}" created. Upload photos below.`);
+};
+
+// ============================================================
+
 const initAdmin = async () => {
   await requireAuth();
   loadAdminState();
+  renderGalleryAdmin(); // async — updates DOM when Supabase responds
   renderPendingEntries();
   renderApprovedEntries();
   bindAdminEvents();

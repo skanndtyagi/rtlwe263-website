@@ -291,20 +291,166 @@ const renderTopContent = () => {
   startHeroSlider();
 };
 
-const renderGallery = () => {
+// ---- Lightbox state ----
+let _lbPhotos = [];
+let _lbIndex = 0;
+
+const openLightbox = (photos, index) => {
+  _lbPhotos = photos;
+  _lbIndex = index;
+  const lb = document.getElementById('gallery-lightbox');
+  if (!lb) return;
+  updateLightboxSlide();
+  lb.classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+};
+
+const closeLightbox = () => {
+  const lb = document.getElementById('gallery-lightbox');
+  if (lb) lb.classList.add('hidden');
+  document.body.style.overflow = '';
+};
+
+const updateLightboxSlide = () => {
+  const img = document.getElementById('lb-img');
+  const cap = document.getElementById('lb-caption');
+  const counter = document.getElementById('lb-counter');
+  if (!img) return;
+  const photo = _lbPhotos[_lbIndex];
+  img.src = photo.src;
+  img.alt = photo.caption || '';
+  if (cap) cap.textContent = photo.caption || '';
+  if (counter) counter.textContent = `${_lbIndex + 1} / ${_lbPhotos.length}`;
+};
+
+const lbPrev = () => {
+  if (!_lbPhotos.length) return;
+  _lbIndex = (_lbIndex - 1 + _lbPhotos.length) % _lbPhotos.length;
+  updateLightboxSlide();
+};
+
+const lbNext = () => {
+  if (!_lbPhotos.length) return;
+  _lbIndex = (_lbIndex + 1) % _lbPhotos.length;
+  updateLightboxSlide();
+};
+
+const injectLightbox = () => {
+  if (document.getElementById('gallery-lightbox')) return;
+  const lb = document.createElement('div');
+  lb.id = 'gallery-lightbox';
+  lb.className = 'gallery-lightbox hidden';
+  lb.innerHTML = `
+    <div class="lb-overlay"></div>
+    <div class="lb-content">
+      <button class="lb-close" id="lb-close" aria-label="Close">&#10005;</button>
+      <button class="lb-nav lb-prev" id="lb-prev" aria-label="Previous">&#8249;</button>
+      <div class="lb-img-wrap">
+        <img id="lb-img" src="" alt="" />
+      </div>
+      <button class="lb-nav lb-next" id="lb-next" aria-label="Next">&#8250;</button>
+      <div class="lb-footer">
+        <p id="lb-caption" class="lb-caption"></p>
+        <span id="lb-counter" class="lb-counter"></span>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(lb);
+  lb.querySelector('.lb-overlay').addEventListener('click', closeLightbox);
+  document.getElementById('lb-close').addEventListener('click', closeLightbox);
+  document.getElementById('lb-prev').addEventListener('click', lbPrev);
+  document.getElementById('lb-next').addEventListener('click', lbNext);
+  document.addEventListener('keydown', (e) => {
+    if (lb.classList.contains('hidden')) return;
+    if (e.key === 'ArrowLeft') lbPrev();
+    if (e.key === 'ArrowRight') lbNext();
+    if (e.key === 'Escape') closeLightbox();
+  });
+};
+
+// ---- Gallery rendering (event-grouped) ----
+const fetchGalleryFromSupabase = async () => {
+  if (!isSupabaseReady()) return null;
+  const { data: rows, error } = await SUPABASE
+    .from('gallery_images')
+    .select('id, src, caption, event_name, event_date')
+    .eq('active', true)
+    .order('event_date', { ascending: false })
+    .order('order', { ascending: true });
+  if (error || !rows || !rows.length) return null;
+  return rows;
+};
+
+const renderGallery = async () => {
   const galleryGrid = getById('gallery-grid');
   if (!galleryGrid) return;
-  if (!Array.isArray(data.gallery) || data.gallery.length === 0) {
-    galleryGrid.innerHTML = '<div class="gallery-empty">No gallery images are configured yet. Add them from the admin dashboard.</div>';
+
+  const remotePhotos = await fetchGalleryFromSupabase();
+
+  if (remotePhotos && remotePhotos.length) {
+    // Group by event_name
+    const albumMap = {};
+    remotePhotos.forEach((img) => {
+      const key = img.event_name || 'General';
+      if (!albumMap[key]) {
+        albumMap[key] = { event_name: key, event_date: img.event_date || '', photos: [] };
+      }
+      albumMap[key].photos.push(img);
+    });
+    const albums = Object.values(albumMap);
+    galleryGrid.innerHTML = albums.map((album) => {
+      const dateStr = album.event_date
+        ? new Date(album.event_date + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
+        : '';
+      const photosHtml = album.photos.map((p, i) => `
+        <figure class="gallery-event-photo anim-rise" data-album="${esc(album.event_name)}" data-idx="${i}">
+          <img src="${esc(p.src)}" alt="${esc(p.caption || album.event_name)}" loading="lazy" />
+          ${p.caption ? `<figcaption>${esc(p.caption)}</figcaption>` : ''}
+        </figure>
+      `).join('');
+      return `
+        <div class="gallery-event-group">
+          <div class="gallery-event-header">
+            <h3 class="gallery-event-name">${esc(album.event_name)}</h3>
+            ${dateStr ? `<span class="gallery-event-date">${esc(dateStr)}</span>` : ''}
+            <span class="gallery-event-count">${album.photos.length} photo${album.photos.length !== 1 ? 's' : ''}</span>
+          </div>
+          <div class="gallery-event-photos">${photosHtml}</div>
+        </div>
+      `;
+    }).join('');
+
+    // Bind lightbox clicks
+    galleryGrid.querySelectorAll('.gallery-event-photo').forEach((fig) => {
+      fig.addEventListener('click', () => {
+        const albumName = fig.dataset.album;
+        const idx = Number(fig.dataset.idx);
+        const album = albums.find((a) => a.event_name === albumName);
+        if (album) openLightbox(album.photos, idx);
+      });
+    });
     return;
   }
-  galleryGrid.innerHTML = data.gallery
-    .map((item, i) => {
-      const src = item?.src || item;
-      const caption = item?.caption || '';
-      return `<figure class="anim-rise"><img src="${esc(src)}" alt="London West End gallery image ${i + 1}" loading="lazy" /><figcaption>${esc(caption)}</figcaption></figure>`;
-    })
-    .join('');
+
+  // Fallback: legacy flat gallery from localStorage
+  if (!Array.isArray(data.gallery) || data.gallery.length === 0) {
+    galleryGrid.innerHTML = '<div class="gallery-empty">No gallery images yet. Upload photos from the admin dashboard.</div>';
+    return;
+  }
+  const flatPhotos = data.gallery.map((item) => ({ src: item?.src || item, caption: item?.caption || '' }));
+  galleryGrid.innerHTML = `<div class="gallery-event-group">
+    <div class="gallery-event-header"><h3 class="gallery-event-name">Gallery</h3></div>
+    <div class="gallery-event-photos">
+      ${flatPhotos.map((p, i) => `
+        <figure class="gallery-event-photo anim-rise" data-album="Gallery" data-idx="${i}">
+          <img src="${esc(p.src)}" alt="${esc(p.caption)}" loading="lazy" />
+          ${p.caption ? `<figcaption>${esc(p.caption)}</figcaption>` : ''}
+        </figure>`).join('')}
+    </div>
+  </div>`;
+  galleryGrid.querySelectorAll('.gallery-event-photo').forEach((fig) => {
+    fig.addEventListener('click', () => openLightbox(flatPhotos, Number(fig.dataset.idx)));
+  });
 };
 
 const renderProgramme = () => {
@@ -564,7 +710,7 @@ const bindEventDetail = () => {
 
 const renderAll = () => {
   renderTopContent();
-  renderGallery();
+  renderGallery(); // async — updates DOM when Supabase responds
   renderProgramme();
   renderTablers();
   renderSchema();
@@ -572,6 +718,7 @@ const renderAll = () => {
 };
 
 const initSite = async () => {
+  injectLightbox();
   const remote = await fetchSiteData();
   if (remote) {
     data = mergeSiteData(remote);
