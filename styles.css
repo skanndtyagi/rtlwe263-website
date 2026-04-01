@@ -533,11 +533,10 @@ input:focus, textarea:focus, select:focus {
 
 
 @media (hover: none) {
+  /* Disable hover-triggered flip — JS handles tap-to-flip via .flipped class */
   .tabler-card:hover .tabler-card-inner,
   .tabler-card:focus-within .tabler-card-inner { transform: none; }
-  .tabler-back { position: relative; transform: none; margin-top: .6rem; }
-  .tabler-front { position: relative; }
-  .tabler-card-inner { min-height: unset; }
+  .tabler-card.flipped .tabler-card-inner { transform: rotateY(180deg); }
 }
 
 /* ==============================
@@ -865,5 +864,51 @@ input:focus, textarea:focus, select:focus {
   .gallery-album-actions { width: 100%; }
   .gallery-album-edit-meta { flex-direction: column; }
   .gallery-photo-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+}
+
+/* =============================================
+   Mobile-specific fixes (≤600px)
+   ============================================= */
+@media (max-width: 600px) {
+
+  /* ---- Lightbox: column layout, nav overlaid on sides ---- */
+  .lb-content {
+    flex-direction: column;
+    padding: 3.2rem .5rem .75rem;
+    gap: .5rem;
+    justify-content: flex-start;
+    align-items: center;
+  }
+  /* Nav buttons float over the image sides instead of being flex siblings */
+  .lb-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 20;
+  }
+  .lb-prev { left: .25rem; }
+  .lb-next { right: .25rem; }
+  .lb-img-wrap {
+    max-width: 100%;
+    width: 100%;
+  }
+  .lb-img-wrap img {
+    max-height: 62vh;
+    width: 100%;
+    border-radius: 10px;
+  }
+  .lb-footer {
+    margin-top: 0;
+    text-align: center;
+    padding: 0 3rem; /* clear of the overlaid nav buttons */
+  }
+
+  /* ---- Tabler cards: fixed photo height so name/title fits within card ---- */
+  .tabler-front img { aspect-ratio: unset; height: 210px; }
+  .tabler-card,
+  .tabler-card-inner { min-height: 320px; }
+
+  /* ---- Nav links: generous tap targets on mobile ---- */
+  .site-nav a { display: block; padding: .65rem .5rem; }
 }
 

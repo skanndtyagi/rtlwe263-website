@@ -540,7 +540,7 @@ const renderTablers = () => {
             <img src="${esc(t.photo || 'assets/tabler-placeholder.jpg')}" alt="${esc(t.name)}" loading="lazy" />
             <h3>${esc(t.name)}</h3>
             <p class="title">${esc(t.title)}</p>
-            <p class="tap-note">Tap/hover to read more</p>
+            <p class="tap-note">Tap to flip &middot; Hover to see bio</p>
           </div>
           <div class="tabler-back">
             <p class="title">${esc(t.title)}</p>
@@ -549,6 +549,13 @@ const renderTablers = () => {
         </div>
       </article>`)
     .join('');
+
+  // Touch devices: tap the card to flip instead of hover
+  if (window.matchMedia('(hover: none)').matches) {
+    grid.querySelectorAll('.tabler-card').forEach(card => {
+      card.addEventListener('click', () => card.classList.toggle('flipped'));
+    });
+  }
 };
 
 const renderSchema = () => {
@@ -804,9 +811,24 @@ const bindMenu = () => {
   const btn = getById('menu-btn');
   const nav = getById('site-nav');
   if (!btn || !nav) return;
-  btn.addEventListener('click', () => {
+
+  const closeMenu = () => {
+    nav.classList.remove('open');
+    btn.setAttribute('aria-expanded', 'false');
+  };
+
+  btn.addEventListener('click', (e) => {
+    e.stopPropagation();
     nav.classList.toggle('open');
     btn.setAttribute('aria-expanded', String(nav.classList.contains('open')));
+  });
+
+  // Close when any nav link is tapped (hash links scroll then menu should disappear)
+  nav.querySelectorAll('a').forEach(a => a.addEventListener('click', closeMenu));
+
+  // Close when tapping anywhere outside the nav/button
+  document.addEventListener('click', (e) => {
+    if (nav.classList.contains('open') && !nav.contains(e.target) && e.target !== btn) closeMenu();
   });
 };
 
