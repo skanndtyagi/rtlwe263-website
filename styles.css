@@ -1066,9 +1066,47 @@ input:focus, textarea:focus, select:focus {
 
 /* ---- Chairman's Note ---- */
 #chairman { padding: 3.5rem 0; }
+.chairman-layout {
+  margin-top: 1.5rem;
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  gap: 1.2rem;
+  align-items: start;
+}
+.chairman-profile {
+  margin: 0;
+  border: 1px solid rgba(220, 178, 108, 0.28);
+  border-radius: 20px;
+  overflow: hidden;
+  background: linear-gradient(180deg, #122033, #0f1b2c 52%, #0d1725);
+  box-shadow: 0 16px 36px rgb(0 0 0 / 28%);
+}
+.chairman-profile img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+  object-position: center 22%;
+}
+.chairman-profile figcaption {
+  display: grid;
+  gap: .2rem;
+  padding: .9rem .95rem 1rem;
+  border-top: 1px solid rgba(220, 178, 108, 0.18);
+}
+.chairman-profile strong {
+  color: var(--text);
+  font-size: .96rem;
+  line-height: 1.25;
+}
+.chairman-profile span {
+  color: var(--gold);
+  font-size: .8rem;
+  font-weight: 600;
+  letter-spacing: .03em;
+}
 .chairman-note {
-  margin: 1.5rem auto 0;
-  max-width: 740px;
+  margin: 0;
   position: relative;
   padding: 2.4rem 2.4rem 2rem 4.2rem;
   background: linear-gradient(160deg, rgba(19, 31, 52, 0.72), rgba(13, 21, 36, 0.82));
@@ -1124,7 +1162,9 @@ input:focus, textarea:focus, select:focus {
 
 /* ---- Club History Timeline ---- */
 .history-timeline {
+  list-style: none;
   margin-top: 2rem;
+  margin-bottom: 0;
   padding-left: 1rem;
   border-left: 2px solid var(--line);
 }
@@ -1216,6 +1256,14 @@ input:focus, textarea:focus, select:focus {
 }
 
 @media (max-width: 680px) {
+  .chairman-layout {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  .chairman-profile {
+    width: min(290px, 100%);
+    justify-self: center;
+  }
   .chairman-note {
     padding: 2rem 1.5rem 1.8rem 2.2rem;
   }
