@@ -13,6 +13,44 @@ body {
   color: var(--text);
   background: radial-gradient(circle at top left, #1c2a3e, var(--bg) 35%);
   line-height: 1.6;
+  position: relative;
+  overflow-x: hidden;
+}
+.site-header, main, .site-footer { position: relative; z-index: 1; }
+
+/* Ambient background motion (subtle, non-distracting) */
+body::before,
+body::after {
+  content: '';
+  position: fixed;
+  inset: -22vmax;
+  pointer-events: none;
+  z-index: 0;
+}
+body::before {
+  background:
+    radial-gradient(circle at 20% 25%, rgba(90, 140, 255, 0.14) 0%, rgba(90, 140, 255, 0) 45%),
+    radial-gradient(circle at 78% 38%, rgba(220, 178, 108, 0.11) 0%, rgba(220, 178, 108, 0) 44%),
+    radial-gradient(circle at 55% 72%, rgba(120, 210, 200, 0.08) 0%, rgba(120, 210, 200, 0) 40%);
+  filter: blur(10px) saturate(1.08);
+  animation: aurora-drift 34s ease-in-out infinite alternate;
+}
+body::after {
+  background:
+    linear-gradient(110deg, rgba(255,255,255,0.018) 10%, rgba(255,255,255,0.004) 45%, rgba(255,255,255,0.018) 90%);
+  opacity: 0.34;
+  animation: sheen-shift 26s linear infinite;
+}
+
+@keyframes aurora-drift {
+  0%   { transform: translate3d(0, 0, 0) scale(1); }
+  50%  { transform: translate3d(-1.2%, -1.8%, 0) scale(1.03); }
+  100% { transform: translate3d(1.6%, 1.1%, 0) scale(1.02); }
+}
+
+@keyframes sheen-shift {
+  0%   { transform: translate3d(-2%, 0, 0) rotate(0.001deg); }
+  100% { transform: translate3d(2%, 0, 0) rotate(0.001deg); }
 }
 .container { width: min(1120px, 92vw); margin: 0 auto; }
 h1, h2, h3 { font-family: 'Playfair Display', Georgia, serif; margin: 0 0 .8rem; line-height: 1.15; }
@@ -910,7 +948,12 @@ input:focus, textarea:focus, select:focus {
 .stagger > *:nth-child(n+9){ transition-delay: .64s;  }
 @media (prefers-reduced-motion: reduce) {
   .reveal, .btn, .gallery-event-photo img, .tabler-card-inner,
-  .gallery-photo-item--new { transition: none !important; animation: none !important; opacity: 1 !important; transform: none !important; }
+  .gallery-photo-item--new, body::before, body::after {
+    transition: none !important;
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
 }
 
 /* Responsive tweaks for admin gallery */
