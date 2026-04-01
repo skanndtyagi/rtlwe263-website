@@ -7,101 +7,177 @@
     <meta name="description" content="Admin dashboard for managing Round Table London West End 623 website content." />
     <link rel="stylesheet" href="styles.css" />
   </head>
-  <body>
-    <header class="site-header">
-      <div class="container nav-row">
-        <a href="index.html" class="brand"><span>RT</span> London West End 623</a>
-        <nav id="site-nav" class="site-nav">
-          <a href="index.html">Live site</a>
-          <a href="admin-login.html">Login</a>
-        </nav>
-      </div>
-    </header>
+  <body class="admin-body">
+    <div class="admin-layout">
 
-    <main>
-      <section class="section" id="admin-overview">
-        <div class="container">
-          <h1>Admin Dashboard</h1>
-          <p>Manage homepage content, gallery, events, and guestbook entries from a secure admin panel.</p>
-          <div class="admin-nav-links">
-            <a href="#admin-content">Content</a>
-            <a href="#admin-media">Media</a>
-            <a href="#admin-guestbook">Guestbook</a>
+      <aside class="admin-sidebar">
+        <div class="admin-sidebar-brand">
+          <div class="brand">
+            <img src="assets/london-west-end-logo.png" alt="LWE 623 logo" class="brand-logo" />
+            LWE 623
+          </div>
+          <p class="admin-sidebar-label">Content Manager</p>
+        </div>
+        <nav class="admin-sidebar-nav">
+          <button class="admin-nav-btn active" data-panel="panel-hero">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/></svg>
+            Hero &amp; About
+          </button>
+          <button class="admin-nav-btn" data-panel="panel-gallery">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
+            Gallery
+          </button>
+          <button class="admin-nav-btn" data-panel="panel-events">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+            Programme
+          </button>
+          <button class="admin-nav-btn" data-panel="panel-tablers">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            Tablers
+          </button>
+          <button class="admin-nav-btn" data-panel="panel-guestbook">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+            Guestbook
+          </button>
+          <button class="admin-nav-btn" data-panel="panel-settings">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            Settings
+          </button>
+        </nav>
+        <div class="admin-sidebar-footer">
+          <a href="index.html" class="admin-sidebar-link">&#8599; View live site</a>
+          <button class="btn btn-secondary admin-sidebar-logout" id="admin-logout">Logout</button>
+        </div>
+      </aside>
+
+      <main class="admin-main">
+        <div id="admin-message" class="admin-message"></div>
+
+        <!-- Hero & About -->
+        <div class="admin-panel active" id="panel-hero">
+          <div class="admin-panel-header">
+            <div>
+              <h1 class="admin-panel-title">Hero &amp; About</h1>
+              <p class="muted">Manage the homepage hero section and about copy.</p>
+            </div>
+            <button class="btn btn-primary" id="admin-save-hero">Save Changes</button>
+          </div>
+          <div class="admin-card">
+            <h3 class="admin-card-title">Hero text</h3>
+            <div class="admin-field-group">
+              <label>Page headline<input id="admin-hero-title" maxlength="120" /></label>
+              <label>Subtitle / tagline<textarea id="admin-hero-subtitle" rows="3" maxlength="320"></textarea></label>
+            </div>
+          </div>
+          <div class="admin-card">
+            <div class="admin-card-header-row">
+              <h3 class="admin-card-title">Hero slides</h3>
+              <button class="btn btn-secondary" id="admin-add-hero-slide">+ Add slide</button>
+            </div>
+            <p class="muted" style="margin-bottom:1rem">Each slide is shown as a rotating background image. Paste a public image URL from Supabase Storage, Cloudinary, or any CDN. Add an optional caption.</p>
+            <div id="admin-hero-slide-list" class="admin-image-rows"></div>
+          </div>
+          <div class="admin-card">
+            <h3 class="admin-card-title">About section</h3>
+            <label>About copy<textarea id="admin-about" rows="6" maxlength="600"></textarea></label>
           </div>
         </div>
-      </section>
 
-      <section class="section alt" id="admin-content">
-        <div class="container split">
-          <div>
-            <h2>Site content manager</h2>
-            <form id="admin-content-form" class="admin-form">
-              <label>Hero title<input id="admin-hero-title" maxlength="120" required /></label>
-              <label>Hero subtitle<textarea id="admin-hero-subtitle" rows="3" maxlength="320"></textarea></label>
-              <label>About section<textarea id="admin-about" rows="4" maxlength="600"></textarea></label>
-              <label>Hero slides<textarea id="admin-hero-slides" rows="5" placeholder="assets/hero-01.jpg | West End fellowship in action"></textarea></label>
-              <label>Hero image path<input id="admin-hero-image" placeholder="assets/hero-01.jpg" /></label>
-              <label>Gallery entries<textarea id="admin-gallery" rows="5" placeholder="assets/gallery-01.jpg | Brotherhood night in the West End"></textarea></label>
+        <!-- Gallery -->
+        <div class="admin-panel" id="panel-gallery">
+          <div class="admin-panel-header">
+            <div>
+              <h1 class="admin-panel-title">Gallery</h1>
+              <p class="muted">Manage the Gallery Highlights section on the homepage.</p>
+            </div>
+            <button class="btn btn-primary" id="admin-save-gallery">Save Changes</button>
+          </div>
+          <div class="admin-card">
+            <div class="admin-card-header-row">
+              <h3 class="admin-card-title">Gallery images</h3>
+              <button class="btn btn-secondary" id="admin-add-gallery-image">+ Add image</button>
+            </div>
+            <p class="muted" style="margin-bottom:1rem">Paste a public image URL for each photo. The first image will be featured larger. Add an optional caption shown on hover.</p>
+            <div id="admin-gallery-list" class="admin-image-rows"></div>
+          </div>
+        </div>
+
+        <!-- Programme -->
+        <div class="admin-panel" id="panel-events">
+          <div class="admin-panel-header">
+            <div>
+              <h1 class="admin-panel-title">Programme</h1>
+              <p class="muted">Manage events for the 2026–2027 programme year.</p>
+            </div>
+            <div style="display:flex;gap:.6rem;align-items:center">
+              <button class="btn btn-secondary" id="admin-add-event">+ Add event</button>
+              <button class="btn btn-primary" id="admin-save-events">Save Changes</button>
+            </div>
+          </div>
+          <div id="admin-event-list" class="admin-event-list"></div>
+        </div>
+
+        <!-- Tablers -->
+        <div class="admin-panel" id="panel-tablers">
+          <div class="admin-panel-header">
+            <div>
+              <h1 class="admin-panel-title">Tablers</h1>
+              <p class="muted">Manage member profiles shown on the homepage.</p>
+            </div>
+            <div style="display:flex;gap:.6rem;align-items:center">
+              <button class="btn btn-secondary" id="admin-add-tabler">+ Add tabler</button>
+              <button class="btn btn-primary" id="admin-save-tablers">Save Changes</button>
+            </div>
+          </div>
+          <div id="admin-tabler-list" class="admin-tabler-list"></div>
+        </div>
+
+        <!-- Guestbook -->
+        <div class="admin-panel" id="panel-guestbook">
+          <div class="admin-panel-header">
+            <div>
+              <h1 class="admin-panel-title">Guestbook</h1>
+              <p class="muted">Moderate visiting book entries from members and clubs.</p>
+            </div>
+          </div>
+          <div class="admin-cols">
+            <div class="admin-card">
+              <h3 class="admin-card-title">Pending <span class="admin-badge" id="pending-count"></span></h3>
+              <div id="pending-entries"><p class="muted">No pending entries.</p></div>
+            </div>
+            <div class="admin-card">
+              <h3 class="admin-card-title">Approved</h3>
+              <div id="approved-entries"><p class="muted">No approved entries yet.</p></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Settings -->
+        <div class="admin-panel" id="panel-settings">
+          <div class="admin-panel-header">
+            <div>
+              <h1 class="admin-panel-title">Settings</h1>
+              <p class="muted">Integration URLs and advanced configuration.</p>
+            </div>
+            <button class="btn btn-primary" id="admin-save-settings">Save Settings</button>
+          </div>
+          <div class="admin-card">
+            <h3 class="admin-card-title">Integrations</h3>
+            <div class="admin-field-group">
               <label>Guestbook submit URL<input id="admin-submit-url" placeholder="https://..." /></label>
               <label>Guestbook approved feed URL<input id="admin-feed-url" placeholder="https://..." /></label>
-              <label>Admin approval page URL<input id="admin-admin-url" placeholder="https://..." /></label>
-
-              <div class="admin-events">
-                <h3>Event schedule</h3>
-                <p class="muted">Edit the date, time, location, contact and description for each event.</p>
-                <div id="admin-event-list"></div>
-                <button class="btn btn-secondary" id="admin-add-event" type="button">Add event</button>
-              </div>
-            </form>
-            <div class="hero-actions">
-              <button class="btn btn-primary" id="admin-save-content" type="button">Save content</button>
-              <button class="btn btn-secondary" id="admin-reset-content" type="button">Reset defaults</button>
-              <button class="btn btn-secondary" id="admin-logout" type="button">Logout</button>
+              <label>Admin dashboard URL<input id="admin-admin-url" placeholder="https://..." /></label>
             </div>
           </div>
-          <aside class="info-card">
-            <h3>How this works</h3>
-            <p>The homepage is public, but the CMS is behind the admin login page.</p>
-            <p>Hero slide images and captions are managed from the admin form, one line per slide.</p>
-            <p>Gallery paths can be updated with one line per image in the admin form.</p>
-            <p>Guestbook submissions are emailed to <strong>london.westend@roundtable.org.uk</strong> and stored for approval.</p>
-            <div id="admin-media" class="admin-image-inventory">
-              <h4>Current image inventory</h4>
-              <p>These are the active hero slide and gallery image paths currently configured for the site.</p>
-              <div id="hero-slide-list"></div>
-              <div id="gallery-image-list"></div>
-            </div>
-          </aside>
-        </div>
-      </section>
-
-      <section class="section" id="admin-guestbook">
-        <div class="container">
-          <div class="split">
-            <div>
-              <h2>Guestbook moderation</h2>
-              <p>Approve or delete visitor entries that arrive by email or local fallback.</p>
-            </div>
-            <aside class="info-card">
-              <h3>Email workflow</h3>
-              <p>The admin receives a mailto message with the entry details and a dashboard link.</p>
-            </aside>
-          </div>
-
-          <div id="admin-message" class="admin-message"></div>
-
-          <div>
-            <h3>Pending entries</h3>
-            <div id="pending-entries"></div>
-          </div>
-
-          <div>
-            <h3>Approved entries</h3>
-            <div id="approved-entries"></div>
+          <div class="admin-card" style="border-color:rgba(220,50,50,0.3)">
+            <h3 class="admin-card-title">Danger zone</h3>
+            <p class="muted">Reset all site content back to the default placeholder data.</p>
+            <button class="btn btn-secondary" id="admin-reset-content">Reset all content to defaults</button>
           </div>
         </div>
-      </section>
-    </main>
+
+      </main>
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
     <script src="supabase-config.js"></script>

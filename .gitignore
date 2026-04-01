@@ -1,1 +1,8 @@
-touch .gitignore admin.html admin-config.example.js
+# Local Supabase config
+supabase-config.js
+
+# OS / editor files
+.DS_Store
+
+# Optional folders
+node_modules/

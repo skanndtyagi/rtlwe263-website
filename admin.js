@@ -39,25 +39,121 @@ const signOutAdmin = async () => {
   localStorage.removeItem(ADMIN_AUTH_KEY);
 };
 
-const formatGallery = (gallery) =>
-  (gallery || [])
-    .map((item) => `${item.src || ''} | ${item.caption || ''}`)
-    .join('\n');
+const switchPanel = (targetId) => {
+  document.querySelectorAll('.admin-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.admin-nav-btn').forEach(b => b.classList.remove('active'));
+  const panel = document.getElementById(targetId);
+  if (panel) panel.classList.add('active');
+  document.querySelectorAll(`.admin-nav-btn[data-panel="${targetId}"]`).forEach(b => b.classList.add('active'));
+};
 
-const parseGallery = (raw) =>
-  raw
-    .split('\n')
-    .map((line) => line.trim())
-    .filter(Boolean)
-    .map((line) => {
-      const [src, ...captionParts] = line.split('|');
-      return { src: (src || '').trim(), caption: captionParts.join('|').trim() };
-    })
-    .filter((item) => item.src);
+const createImageRow = (item = {}) => {
+  const row = document.createElement('div');
+  row.className = 'admin-image-row';
+  const src = item.src || '';
+  const caption = item.caption || '';
+  row.innerHTML = `
+    <div class="admin-image-row-preview">
+      <img class="admin-row-preview-img" src="${esc(src)}" alt="" ${src ? '' : 'style="display:none"'} />
+      <span class="admin-row-preview-placeholder"${src ? ' style="display:none"' : ''}>No image</span>
+    </div>
+    <div class="admin-image-row-fields">
+      <input class="admin-row-url" type="url" placeholder="Paste image URL\u2026" value="${esc(src)}" />
+      <input class="admin-row-caption" placeholder="Caption (optional)" value="${esc(caption)}" />
+    </div>
+    <button class="btn btn-secondary admin-row-remove" type="button">Remove</button>
+  `;
+  const urlInput = row.querySelector('.admin-row-url');
+  const img = row.querySelector('.admin-row-preview-img');
+  const placeholder = row.querySelector('.admin-row-preview-placeholder');
+  urlInput.addEventListener('input', () => {
+    const val = urlInput.value.trim();
+    img.src = val;
+    img.style.display = val ? '' : 'none';
+    placeholder.style.display = val ? 'none' : '';
+  });
+  row.querySelector('.admin-row-remove').addEventListener('click', () => row.remove());
+  return row;
+};
+
+const collectImageRows = (containerId) => {
+  const container = adminGet(containerId);
+  if (!container) return [];
+  return Array.from(container.querySelectorAll('.admin-image-row'))
+    .map(row => ({
+      src: row.querySelector('.admin-row-url')?.value.trim() || '',
+      caption: row.querySelector('.admin-row-caption')?.value.trim() || '',
+    }))
+    .filter(item => item.src);
+};
+
+const renderImageRows = (containerId, items) => {
+  const container = adminGet(containerId);
+  if (!container) return;
+  container.innerHTML = '';
+  const list = Array.isArray(items) && items.length ? items : [];
+  if (!list.length) {
+    container.appendChild(createImageRow({}));
+  } else {
+    list.forEach(item => container.appendChild(createImageRow(item)));
+  }
+};
+
+const createTablerRow = (tabler = {}) => {
+  const row = document.createElement('div');
+  row.className = 'admin-tabler-row admin-card';
+  const photo = tabler.photo || '';
+  row.innerHTML = `
+    <div class="admin-tabler-row-inner">
+      <div class="admin-tabler-preview">
+        <img class="admin-tabler-preview-img" src="${esc(photo)}" alt="" ${photo ? '' : 'style="display:none"'} />
+        <span class="admin-tabler-preview-placeholder"${photo ? ' style="display:none"' : ''}>No photo</span>
+      </div>
+      <div class="admin-tabler-fields">
+        <div class="admin-field-group admin-field-group-inline">
+          <label>Name<input class="admin-tabler-name" value="${esc(tabler.name || '')}" placeholder="Full name" /></label>
+          <label>Role / Title<input class="admin-tabler-title" value="${esc(tabler.title || '')}" placeholder="e.g. Chairman" /></label>
+        </div>
+        <label>Photo URL<input class="admin-tabler-photo" type="url" placeholder="https://\u2026" value="${esc(photo)}" /></label>
+        <label>Bio<textarea class="admin-tabler-bio" rows="3" placeholder="Short bio\u2026">${esc(tabler.bio || '')}</textarea></label>
+      </div>
+      <button class="btn btn-secondary admin-tabler-remove" type="button">Remove</button>
+    </div>
+  `;
+  const photoInput = row.querySelector('.admin-tabler-photo');
+  const img = row.querySelector('.admin-tabler-preview-img');
+  const placeholder = row.querySelector('.admin-tabler-preview-placeholder');
+  photoInput.addEventListener('input', () => {
+    const val = photoInput.value.trim();
+    img.src = val;
+    img.style.display = val ? '' : 'none';
+    placeholder.style.display = val ? 'none' : '';
+  });
+  row.querySelector('.admin-tabler-remove').addEventListener('click', () => row.remove());
+  return row;
+};
+
+const collectTablerRows = () =>
+  Array.from(document.querySelectorAll('.admin-tabler-row'))
+    .map(row => ({
+      name: row.querySelector('.admin-tabler-name')?.value.trim() || 'Unnamed',
+      title: row.querySelector('.admin-tabler-title')?.value.trim() || '',
+      photo: row.querySelector('.admin-tabler-photo')?.value.trim() || '',
+      bio: row.querySelector('.admin-tabler-bio')?.value.trim() || '',
+    }))
+    .filter(t => t.name && t.name !== 'Unnamed' || t.photo);
+
+const renderTablerEditor = (tablers) => {
+  const list = adminGet('admin-tabler-list');
+  if (!list) return;
+  list.innerHTML = '';
+  const items = Array.isArray(tablers) && tablers.length ? tablers : [{}];
+  items.forEach(t => list.appendChild(createTablerRow(t)));
+};
 
 const createEventRow = (event = {}) => {
   const row = document.createElement('article');
-  row.className = 'admin-event-row card';
+  row.className = 'admin-event-row admin-card';
   row.innerHTML = `
     <div class="admin-event-row-top">
       <label>Date<input class="admin-event-date" type="date" value="${event.date || ''}" /></label>
@@ -102,7 +198,9 @@ const showAdminMessage = (text, type = 'notice') => {
   const msg = adminGet('admin-message');
   if (!msg) return;
   msg.textContent = text;
-  msg.className = `admin-message ${type}`;
+  msg.className = `admin-message ${type} visible`;
+  clearTimeout(showAdminMessage._timer);
+  showAdminMessage._timer = setTimeout(() => { if (msg) msg.classList.remove('visible'); }, 3500);
 };
 
 const readFallbackEntries = () => {
@@ -133,22 +231,22 @@ const renderPendingEntries = () => {
   const list = adminGet('pending-entries');
   if (!list) return;
   const pending = readFallbackEntries();
+  const badge = adminGet('pending-count');
+  if (badge) badge.textContent = pending.length ? String(pending.length) : '';
   if (!pending.length) {
-    list.innerHTML = '<p>No pending entries.</p>';
+    list.innerHTML = '<p class="muted">No pending entries.</p>';
     return;
   }
-
   list.innerHTML = pending
     .map((entry, idx) => {
       const name = esc(entry.name || 'Anonymous');
       const club = esc(entry.club || 'Unknown');
       const message = esc(entry.message || '');
       return `
-        <article class="card admin-card anim-rise">
-          <h4>${name}</h4>
-          <p class="muted">${club}</p>
+        <article class="admin-entry-card">
+          <div class="admin-entry-meta"><strong>${name}</strong><span class="muted">${club}</span></div>
           <p>${message}</p>
-          <div class="hero-actions">
+          <div class="admin-entry-actions">
             <button class="btn btn-primary" data-action="approve" data-index="${idx}">Approve</button>
             <button class="btn btn-secondary" data-action="delete" data-index="${idx}">Delete</button>
           </div>
@@ -162,49 +260,62 @@ const renderApprovedEntries = () => {
   if (!list) return;
   const approved = readApprovedEntries();
   if (!approved.length) {
-    list.innerHTML = '<p>No approved entries yet.</p>';
+    list.innerHTML = '<p class="muted">No approved entries yet.</p>';
     return;
   }
-
   list.innerHTML = approved
     .map((entry) => `
-      <article class="card admin-card anim-rise">
-        <h4>${esc(entry.name || 'Anonymous')}</h4>
-        <p class="muted">${esc(entry.club || 'Unknown')}</p>
+      <article class="admin-entry-card">
+        <div class="admin-entry-meta"><strong>${esc(entry.name || 'Anonymous')}</strong><span class="muted">${esc(entry.club || 'Unknown')}</span></div>
         <p>${esc(entry.message || '')}</p>
       </article>`)
     .join('');
 };
 
-const renderHeroSlideInventory = () => {
-  const container = adminGet('hero-slide-list');
-  if (!container) return;
-  const slides = Array.isArray(data.heroSlides) ? data.heroSlides : [];
-  if (!slides.length) {
-    container.innerHTML = '<p>No hero slides configured yet.</p>';
-    return;
-  }
-  container.innerHTML = `<ul>${slides
-    .map((slide) => `<li><strong>${esc(slide.src)}</strong>${slide.caption ? ` — ${esc(slide.caption)}` : ''}</li>`)
-    .join('')}</ul>`;
+const saveHero = () => {
+  const heroTitle = adminGet('admin-hero-title');
+  const heroSubtitle = adminGet('admin-hero-subtitle');
+  const about = adminGet('admin-about');
+  if (heroTitle) data.heroTitle = heroTitle.value.trim() || data.heroTitle;
+  if (heroSubtitle) data.heroSubtitle = heroSubtitle.value.trim() || data.heroSubtitle;
+  if (about) data.about = about.value.trim() || data.about;
+  data.heroSlides = collectImageRows('admin-hero-slide-list');
+  if (data.heroSlides.length) data.heroImage = data.heroSlides[0].src;
+  save(data);
+  renderAll();
+  showAdminMessage('Hero & About saved successfully.');
 };
 
-const renderGalleryInventory = () => {
-  const container = adminGet('gallery-image-list');
-  if (!container) return;
-  const gallery = Array.isArray(data.gallery) ? data.gallery : [];
-  if (!gallery.length) {
-    container.innerHTML = '<p>No gallery images configured yet.</p>';
-    return;
-  }
-  container.innerHTML = `<ul>${gallery
-    .map((item) => `<li><strong>${esc(item.src || item)}</strong>${item.caption ? ` — ${esc(item.caption)}` : ''}</li>`)
-    .join('')}</ul>`;
+const saveGallery = () => {
+  data.gallery = collectImageRows('admin-gallery-list');
+  save(data);
+  renderAll();
+  showAdminMessage('Gallery saved successfully.');
 };
 
-const renderImageInventory = () => {
-  renderHeroSlideInventory();
-  renderGalleryInventory();
+const saveEvents = () => {
+  data.programme = collectEventRows();
+  save(data);
+  renderAll();
+  showAdminMessage('Programme saved successfully.');
+};
+
+const saveTablers = () => {
+  data.tablers = collectTablerRows();
+  save(data);
+  renderAll();
+  showAdminMessage('Tablers saved successfully.');
+};
+
+const saveSettings = () => {
+  const submitUrl = adminGet('admin-submit-url');
+  const feedUrl = adminGet('admin-feed-url');
+  const adminUrl = adminGet('admin-admin-url');
+  if (submitUrl) data.integrations.guestbookSubmitUrl = submitUrl.value.trim();
+  if (feedUrl) data.integrations.guestbookFeedUrl = feedUrl.value.trim();
+  if (adminUrl) data.integrations.adminDashboardUrl = adminUrl.value.trim();
+  save(data);
+  showAdminMessage('Settings saved successfully.');
 };
 
 const approveEntry = (index) => {
@@ -234,66 +345,61 @@ const loadAdminState = () => {
   const heroTitle = adminGet('admin-hero-title');
   const heroSubtitle = adminGet('admin-hero-subtitle');
   const about = adminGet('admin-about');
-  const heroSlides = adminGet('admin-hero-slides');
-  const heroImage = adminGet('admin-hero-image');
-  const gallery = adminGet('admin-gallery');
+  if (heroTitle) heroTitle.value = data.heroTitle || '';
+  if (heroSubtitle) heroSubtitle.value = data.heroSubtitle || '';
+  if (about) about.value = data.about || '';
+  renderImageRows('admin-hero-slide-list', data.heroSlides || []);
+  renderImageRows('admin-gallery-list', data.gallery || []);
+  renderEventEditor(data.programme);
+  renderTablerEditor(data.tablers);
   const submitUrl = adminGet('admin-submit-url');
   const feedUrl = adminGet('admin-feed-url');
   const adminUrl = adminGet('admin-admin-url');
-
-  if (!heroTitle || !heroSubtitle || !about || !heroSlides || !heroImage || !gallery || !submitUrl || !feedUrl || !adminUrl) return;
-
-  heroTitle.value = data.heroTitle;
-  heroSubtitle.value = data.heroSubtitle;
-  about.value = data.about;
-  heroSlides.value = formatGallery(data.heroSlides || []);
-  heroImage.value = data.heroImage;
-  gallery.value = formatGallery(data.gallery);
-  submitUrl.value = data.integrations.guestbookSubmitUrl;
-  feedUrl.value = data.integrations.guestbookFeedUrl;
-  adminUrl.value = data.integrations.adminDashboardUrl;
-  renderEventEditor(data.programme);
-  renderImageInventory();
+  if (submitUrl) submitUrl.value = data.integrations?.guestbookSubmitUrl || '';
+  if (feedUrl) feedUrl.value = data.integrations?.guestbookFeedUrl || '';
+  if (adminUrl) adminUrl.value = data.integrations?.adminDashboardUrl || '';
 };
 
 const bindAdminEvents = () => {
+  // Panel switching
+  document.querySelectorAll('.admin-nav-btn').forEach(btn => {
+    btn.addEventListener('click', () => switchPanel(btn.dataset.panel));
+  });
+
+  // Hero & About
+  adminSafe('admin-save-hero', 'click', saveHero);
+  adminSafe('admin-add-hero-slide', 'click', () => {
+    const list = adminGet('admin-hero-slide-list');
+    if (list) list.appendChild(createImageRow({}));
+  });
+
+  // Gallery
+  adminSafe('admin-save-gallery', 'click', saveGallery);
+  adminSafe('admin-add-gallery-image', 'click', () => {
+    const list = adminGet('admin-gallery-list');
+    if (list) list.appendChild(createImageRow({}));
+  });
+
+  // Programme
+  adminSafe('admin-save-events', 'click', saveEvents);
   adminSafe('admin-add-event', 'click', () => {
     const list = adminGet('admin-event-list');
-    if (!list) return;
-    list.appendChild(createEventRow({}));
+    if (list) list.appendChild(createEventRow({}));
   });
 
-  adminSafe('admin-save-content', 'click', () => {
-    const heroTitle = adminGet('admin-hero-title');
-    const heroSubtitle = adminGet('admin-hero-subtitle');
-    const about = adminGet('admin-about');
-    const heroSlides = adminGet('admin-hero-slides');
-    const heroImage = adminGet('admin-hero-image');
-    const gallery = adminGet('admin-gallery');
-    const submitUrl = adminGet('admin-submit-url');
-    const feedUrl = adminGet('admin-feed-url');
-    const adminUrl = adminGet('admin-admin-url');
-
-    if (!heroTitle || !heroSubtitle || !about || !heroSlides) return;
-
-    data.heroTitle = heroTitle.value.trim();
-    data.heroSubtitle = heroSubtitle.value.trim();
-    data.about = about.value.trim();
-    data.heroSlides = heroSlides ? parseGallery(heroSlides.value) : [];
-    data.heroImage = heroImage.value.trim() || defaultData.heroImage;
-    data.gallery = gallery ? parseGallery(gallery.value) : [];
-    data.programme = collectEventRows();
-    data.integrations.guestbookSubmitUrl = submitUrl.value.trim();
-    data.integrations.guestbookFeedUrl = feedUrl.value.trim();
-    data.integrations.adminDashboardUrl = adminUrl.value.trim();
-
-    save(data);
-    renderAll();
-    renderImageInventory();
-    showAdminMessage('Saved content successfully.');
+  // Tablers
+  adminSafe('admin-save-tablers', 'click', saveTablers);
+  adminSafe('admin-add-tabler', 'click', () => {
+    const list = adminGet('admin-tabler-list');
+    if (list) list.appendChild(createTablerRow({}));
   });
 
+  // Settings
+  adminSafe('admin-save-settings', 'click', saveSettings);
+
+  // Reset
   adminSafe('admin-reset-content', 'click', () => {
+    if (!confirm('Reset all content to defaults? This cannot be undone.')) return;
     localStorage.removeItem(KEY);
     localStorage.removeItem(GUESTBOOK_KEY);
     localStorage.removeItem(GUESTBOOK_APPROVED_KEY);
@@ -302,17 +408,19 @@ const bindAdminEvents = () => {
     loadAdminState();
     renderPendingEntries();
     renderApprovedEntries();
-    showAdminMessage('Local content reset to default.');
+    showAdminMessage('Content reset to defaults.');
   });
 
+  // Logout
   adminSafe('admin-logout', 'click', async () => {
     await signOutAdmin();
     window.location.href = 'admin-login.html';
   });
 
-  const pending = adminGet('pending-entries');
-  if (pending) {
-    pending.addEventListener('click', (event) => {
+  // Guestbook moderation
+  const pendingEl = adminGet('pending-entries');
+  if (pendingEl) {
+    pendingEl.addEventListener('click', (event) => {
       const button = event.target.closest('button[data-action]');
       if (!button) return;
       const action = button.dataset.action;
