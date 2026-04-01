@@ -426,15 +426,38 @@ const formatDisplayDate = (dateStr) => {
   return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
 };
 
+const compressImage = (file, maxPx = 1920, quality = 0.82) =>
+  new Promise((resolve) => {
+    const img = new Image();
+    const objectUrl = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(objectUrl);
+      let { width, height } = img;
+      if (width > maxPx || height > maxPx) {
+        if (width >= height) { height = Math.round((height / width) * maxPx); width = maxPx; }
+        else                 { width  = Math.round((width  / height) * maxPx); height = maxPx; }
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width  = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, width, height);
+      canvas.toBlob((blob) => resolve(blob || file), 'image/jpeg', quality);
+    };
+    img.onerror = () => { URL.revokeObjectURL(objectUrl); resolve(file); };
+    img.src = objectUrl;
+  });
+
 const uploadGalleryFile = async (file, eventName) => {
   if (!isSupabaseReady()) {
     showAdminMessage('Supabase not configured – cannot upload files.', 'notice');
     return null;
   }
-  const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
-  const path = `gallery/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
-  const { error } = await SUPABASE.storage.from('gallery').upload(path, file, {
+  const compressed = await compressImage(file);
+  const path = `gallery/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.jpg`;
+  const { error } = await SUPABASE.storage.from('gallery').upload(path, compressed, {
     cacheControl: '3600',
+    contentType: 'image/jpeg',
     upsert: false,
   });
   if (error) {
@@ -636,9 +659,10 @@ const handleFileUpload = async (files, album, progressEl, photoGrid) => {
   }
   const fileArr = Array.from(files);
   progressEl.classList.remove('hidden');
-  progressEl.textContent = `Uploading 0 of ${fileArr.length}…`;
+  progressEl.textContent = `Compressing & uploading 0 of ${fileArr.length}…`;
   let uploaded = 0;
   for (const file of fileArr) {
+    progressEl.textContent = `Compressing & uploading ${uploaded + 1} of ${fileArr.length}…`;
     const url = await uploadGalleryFile(file, album.event_name);
     if (url) {
       const { data: newRecord } = await SUPABASE.from('gallery_images').insert({
