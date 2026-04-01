@@ -201,8 +201,11 @@ const mergeSiteData = (remoteData) => {
     ...remoteData,
     integrations: { ...data.integrations, ...(remoteData.integrations || {}) },
     gallery: Array.isArray(remoteData.gallery) ? remoteData.gallery : data.gallery,
-    programme: normalizeProgramme(remoteData.programme || data.programme),
-    tablers: Array.isArray(remoteData.tablers) ? remoteData.tablers : data.tablers,
+    // Only use remote data if it has actual content — empty arrays fall back to local defaults
+    programme: normalizeProgramme(
+      (Array.isArray(remoteData.programme) && remoteData.programme.length) ? remoteData.programme : data.programme
+    ),
+    tablers: (Array.isArray(remoteData.tablers) && remoteData.tablers.length) ? remoteData.tablers : data.tablers,
   };
 };
 
@@ -480,7 +483,7 @@ const renderProgramme = () => {
     const date = new Date(event.date || '');
     const day = String(date.getDate() || '').padStart(2, '0');
     const month = date.toLocaleDateString('en-GB', { month: 'short' }).toUpperCase();
-    html += `<article class="event-card reveal" data-index="${index}">
+    html += `<article class="event-card anim-rise" data-index="${index}">
       <div class="event-card-date">
         <span class="event-card-day">${esc(day || 'TBD')}</span>
         <span class="event-card-month">${esc(month || 'TBD')}</span>
