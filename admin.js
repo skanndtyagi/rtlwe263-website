@@ -8,11 +8,35 @@ const adminSafe = (id, event, fn) => {
   el.addEventListener(event, fn);
 };
 
-const isAuthorized = () => localStorage.getItem(ADMIN_AUTH_KEY) === '1';
-const requireAuth = () => {
-  if (!isAuthorized()) {
+const getSupabaseSession = async () => {
+  if (!isSupabaseReady()) return null;
+  const { data, error } = await SUPABASE.auth.getSession();
+  if (error) {
+    console.warn('Failed to load Supabase session:', error.message || error);
+    return null;
+  }
+  return data?.session || null;
+};
+
+const isAuthorized = async () => {
+  if (isSupabaseReady()) {
+    const session = await getSupabaseSession();
+    if (session) return true;
+  }
+  return localStorage.getItem(ADMIN_AUTH_KEY) === '1';
+};
+
+const requireAuth = async () => {
+  if (!(await isAuthorized())) {
     window.location.href = 'admin-login.html';
   }
+};
+
+const signOutAdmin = async () => {
+  if (isSupabaseReady()) {
+    await SUPABASE.auth.signOut();
+  }
+  localStorage.removeItem(ADMIN_AUTH_KEY);
 };
 
 const formatGallery = (gallery) =>
@@ -281,8 +305,8 @@ const bindAdminEvents = () => {
     showAdminMessage('Local content reset to default.');
   });
 
-  adminSafe('admin-logout', 'click', () => {
-    localStorage.removeItem(ADMIN_AUTH_KEY);
+  adminSafe('admin-logout', 'click', async () => {
+    await signOutAdmin();
     window.location.href = 'admin-login.html';
   });
 
@@ -299,8 +323,8 @@ const bindAdminEvents = () => {
   }
 };
 
-const initAdmin = () => {
-  requireAuth();
+const initAdmin = async () => {
+  await requireAuth();
   loadAdminState();
   renderPendingEntries();
   renderApprovedEntries();

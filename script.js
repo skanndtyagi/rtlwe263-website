@@ -1,7 +1,7 @@
 const KEY = 'lwe623-content-v3';
 const GUESTBOOK_KEY = 'lwe623-guestbook-fallback';
 const ADMIN_EMAIL = 'london.westend@roundtable.org.uk';
-const ADMIN_LOGIN_URL = 'https://londonwestend623.org/admin-login.html';
+const ADMIN_LOGIN_URL = 'admin-login.html';
 
 const defaultData = {
   heroTitle: 'The Westenders Guide 2026-2027',
@@ -154,7 +154,57 @@ const load = () => {
   }
 };
 
-const save = (payload) => localStorage.setItem(KEY, JSON.stringify(payload));
+const save = (payload) => {
+  localStorage.setItem(KEY, JSON.stringify(payload));
+  persistSiteData(payload);
+};
+
+const fetchSiteData = async () => {
+  if (!isSupabaseReady()) return null;
+
+  try {
+    const { data: row, error } = await SUPABASE.from('site_settings').select('value').eq('key', SUPABASE_SITE_KEY).single();
+    if (error) {
+      console.warn('Failed to fetch site data:', error.message || error);
+      return null;
+    }
+    return row?.value || null;
+  } catch (err) {
+    console.warn('Failed to fetch site data:', err);
+    return null;
+  }
+};
+
+const persistSiteData = async (payload) => {
+  if (!isSupabaseReady()) return false;
+
+  try {
+    const { error } = await SUPABASE.from('site_settings').upsert(
+      { key: SUPABASE_SITE_KEY, value: payload },
+      { onConflict: 'key' },
+    );
+    if (error) {
+      console.warn('Failed to persist site data:', error.message || error);
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.warn('Failed to persist site data:', err);
+    return false;
+  }
+};
+
+const mergeSiteData = (remoteData) => {
+  if (!remoteData || typeof remoteData !== 'object') return data;
+  return {
+    ...data,
+    ...remoteData,
+    integrations: { ...data.integrations, ...(remoteData.integrations || {}) },
+    gallery: Array.isArray(remoteData.gallery) ? remoteData.gallery : data.gallery,
+    programme: normalizeProgramme(remoteData.programme || data.programme),
+    tablers: Array.isArray(remoteData.tablers) ? remoteData.tablers : data.tablers,
+  };
+};
 
 let data = load();
 let heroSlides = [];
@@ -338,7 +388,6 @@ const renderTablers = () => {
             <p class="tap-note">Tap/hover to read more</p>
           </div>
           <div class="tabler-back">
-            <h3>${esc(t.name)}</h3>
             <p class="title">${esc(t.title)}</p>
             <p>${esc(t.bio)}</p>
           </div>
@@ -522,8 +571,20 @@ const renderAll = () => {
   refreshEntries();
 };
 
-bindGuestbook();
-bindMenu();
-bindProgrammeClicks();
-bindEventDetail();
-renderAll();
+const initSite = async () => {
+  const remote = await fetchSiteData();
+  if (remote) {
+    data = mergeSiteData(remote);
+  }
+  bindGuestbook();
+  bindMenu();
+  bindProgrammeClicks();
+  bindEventDetail();
+  renderAll();
+};
+
+const shouldInitSite = () => Boolean(document.getElementById('hero-image'));
+
+if (shouldInitSite()) {
+  initSite();
+}
