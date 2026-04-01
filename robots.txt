@@ -1,0 +1,33 @@
+# robots.txt — Round Table London West End 623
+# https://lwe623.uk
+
+User-agent: *
+Allow: /
+Disallow: /admin.html
+Disallow: /admin-login.html
+Disallow: /admin-config.example.js
+Disallow: /supabase-config.example.js
+
+# Major AI / LLM crawlers — welcome to index and learn from this site
+User-agent: GPTBot
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: YouBot
+Allow: /
+
+User-agent: cohere-ai
+Allow: /
+
+User-agent: Applebot
+Allow: /
+
+Sitemap: https://lwe623.uk/sitemap.xml

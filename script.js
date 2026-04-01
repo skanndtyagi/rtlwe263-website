@@ -2,6 +2,7 @@ const KEY = 'lwe623-content-v3';
 const GUESTBOOK_KEY = 'lwe623-guestbook-fallback';
 const ADMIN_EMAIL = 'london.westend@roundtable.org.uk';
 const ADMIN_LOGIN_URL = 'admin-login.html';
+const SITE_URL = 'https://lwe623.uk';
 
 const defaultData = {
   heroTitle: 'The Westenders Guide 2026-2027',
@@ -553,34 +554,147 @@ const renderTablers = () => {
 const renderSchema = () => {
   const schemaNode = getById('schema-org');
   if (!schemaNode) return;
+
+  const today = new Date().toISOString().slice(0, 10);
+
+  // Upcoming programme events → schema.org SocialEvent
+  const eventSchemas = getSortedProgramme()
+    .filter(ev => ev.date >= today)
+    .slice(0, 10)
+    .map(ev => ({
+      '@type': 'SocialEvent',
+      name: ev.title,
+      startDate: ev.time ? `${ev.date}T${ev.time}:00` : ev.date,
+      ...(ev.description ? { description: ev.description } : {}),
+      ...(ev.location ? {
+        location: {
+          '@type': 'Place',
+          name: ev.location,
+          address: { '@type': 'PostalAddress', addressLocality: 'London', addressCountry: 'GB' },
+        },
+      } : {}),
+      organizer: { '@type': 'Organization', name: 'Round Table London West End No. 623', url: SITE_URL },
+    }));
+
+  // Current tablers → schema.org Person
+  const memberSchemas = data.tablers.slice(0, 8).map(t => ({
+    '@type': 'Person',
+    name: t.name,
+    ...(t.title ? { jobTitle: t.title } : {}),
+    memberOf: { '@id': `${SITE_URL}/#organization` },
+  }));
+
   const schema = {
     '@context': 'https://schema.org',
     '@graph': [
       {
-        '@type': 'Organization',
-        name: 'Round Table London West End 623',
+        '@type': ['Organization', 'SportsClub'],
+        '@id': `${SITE_URL}/#organization`,
+        name: 'Round Table London West End No. 623',
+        alternateName: ['LWE 623', 'RT LWE 623', 'London West End Tablers'],
+        description: 'A fellowship and social club for men aged 18–45 in central London, part of Round Tables of Great Britain and Ireland (RTBI). We run socials, business meetings, volunteering projects, and international events year-round.',
+        url: SITE_URL,
+        logo: `${SITE_URL}/assets/london-west-end-logo.png`,
         email: 'london.westend@roundtable.org.uk',
-        url: 'https://londonwestend623.org',
+        foundingDate: '2019',
+        areaServed: { '@type': 'City', name: 'London' },
+        address: {
+          '@type': 'PostalAddress',
+          addressLocality: 'London',
+          addressRegion: 'West End',
+          addressCountry: 'GB',
+        },
+        geo: { '@type': 'GeoCoordinates', latitude: 51.5118, longitude: -0.1413 },
+        memberOf: {
+          '@type': 'Organization',
+          name: 'Round Tables of Great Britain and Ireland',
+          alternateName: 'RTBI',
+          url: 'https://roundtable.org.uk',
+        },
+        contactPoint: {
+          '@type': 'ContactPoint',
+          email: 'london.westend@roundtable.org.uk',
+          contactType: 'membership',
+          areaServed: 'GB',
+        },
         sameAs: [
-          'https://www.instagram.com/rtlondonwestend?igsh=MTV6b2VrYTR6enh6bg==',
-          'https://www.facebook.com/share/1DAJHdvB5D/?mibextid=wwXIfr',
+          'https://www.instagram.com/rtlondonwestend',
+          'https://www.facebook.com/share/1DAJHdvB5D/',
+          'https://roundtable.org.uk',
         ],
+      },
+      {
+        '@type': 'WebSite',
+        '@id': `${SITE_URL}/#website`,
+        url: SITE_URL,
+        name: 'Round Table London West End 623',
+        description: 'Official website — programme, members, gallery, and visiting book.',
+        publisher: { '@id': `${SITE_URL}/#organization` },
+        inLanguage: 'en-GB',
+      },
+      {
+        '@type': 'WebPage',
+        '@id': `${SITE_URL}/#webpage`,
+        url: SITE_URL,
+        name: 'Round Table London West End 623 | Fellowship in Central London',
+        isPartOf: { '@id': `${SITE_URL}/#website` },
+        about: { '@id': `${SITE_URL}/#organization` },
+        inLanguage: 'en-GB',
+        breadcrumb: {
+          '@type': 'BreadcrumbList',
+          itemListElement: [
+            { '@type': 'ListItem', position: 1, name: 'Home', item: SITE_URL },
+            { '@type': 'ListItem', position: 2, name: 'About', item: `${SITE_URL}/#about` },
+            { '@type': 'ListItem', position: 3, name: 'Programme', item: `${SITE_URL}/#programme` },
+            { '@type': 'ListItem', position: 4, name: 'Meet the Tablers', item: `${SITE_URL}/#tablers` },
+            { '@type': 'ListItem', position: 5, name: 'Gallery', item: `${SITE_URL}/#highlights` },
+            { '@type': 'ListItem', position: 6, name: 'Visiting Book', item: `${SITE_URL}/#visiting-book` },
+            { '@type': 'ListItem', position: 7, name: 'FAQ', item: `${SITE_URL}/#faq` },
+          ],
+        },
       },
       {
         '@type': 'FAQPage',
         mainEntity: [
           {
             '@type': 'Question',
-            name: 'How do I join an event?',
-            acceptedAnswer: { '@type': 'Answer', text: 'Contact us by email or social channels to express interest.' },
+            name: 'What is Round Table London West End 623?',
+            acceptedAnswer: { '@type': 'Answer', text: 'Round Table London West End No. 623 is a fellowship and social club for men aged 18–45 based in central London. Part of Round Tables of Great Britain and Ireland (RTBI), we run events, socials, volunteering projects, and international fellowship activities year-round.' },
           },
           {
             '@type': 'Question',
-            name: 'Can visiting Tablers attend socials?',
-            acceptedAnswer: { '@type': 'Answer', text: 'Yes. Visitors are welcome; please message us in advance.' },
+            name: 'Who can join Round Table London West End?',
+            acceptedAnswer: { '@type': 'Answer', text: 'Membership is open to men aged 18–45. To express interest, contact london.westend@roundtable.org.uk or reach out via our social channels on Instagram or Facebook.' },
+          },
+          {
+            '@type': 'Question',
+            name: 'How do I join an event or social?',
+            acceptedAnswer: { '@type': 'Answer', text: 'Contact us via email at london.westend@roundtable.org.uk or via our Instagram and Facebook pages. Visiting Tablers and guests are always welcome — please message us ahead of time.' },
+          },
+          {
+            '@type': 'Question',
+            name: 'Can visiting Tablers from other clubs attend?',
+            acceptedAnswer: { '@type': 'Answer', text: 'Yes. We welcome visiting Tablers from any Round Table club in the UK and internationally. Please message us in advance. You can also sign the digital Visiting Book on lwe623.uk.' },
+          },
+          {
+            '@type': 'Question',
+            name: "Where does London West End 623 meet?",
+            acceptedAnswer: { '@type': 'Answer', text: "We meet at venues across London's West End, frequently in Soho and nearby areas. Specific locations for each event are shared via WhatsApp and Spond." },
+          },
+          {
+            '@type': 'Question',
+            name: 'What types of events does Round Table London West End 623 organise?',
+            acceptedAnswer: { '@type': 'Answer', text: 'Monthly business meetings, themed social nights, sport and outdoor activities, charity fundraisers, and national/international Round Table gatherings. The programme runs from April to April each year.' },
+          },
+          {
+            '@type': 'Question',
+            name: 'Where are final event details published?',
+            acceptedAnswer: { '@type': 'Answer', text: 'Official event updates and last-minute changes are shared via WhatsApp and Spond. The full schedule is listed on this website under the Programme section.' },
           },
         ],
       },
+      ...memberSchemas,
+      ...eventSchemas,
     ],
   };
   schemaNode.textContent = JSON.stringify(schema);
