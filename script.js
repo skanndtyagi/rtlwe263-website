@@ -410,6 +410,7 @@ const renderGallery = async () => {
       const db = b.event_date ? new Date(b.event_date).getTime() : 0;
       return db - da;
     });
+    galleryGrid._albums = albums;
 
     const featuredAlbums = albums.slice(0, PREVIEW_ALBUM_LIMIT);
     const remainingAlbums = albums.slice(PREVIEW_ALBUM_LIMIT);
@@ -448,33 +449,42 @@ const renderGallery = async () => {
           <button id="gallery-toggle-all" class="btn btn-secondary" type="button" aria-expanded="false">
             View all albums (${remainingAlbums.length})
           </button>
-          <div id="gallery-more" class="gallery-more hidden">
-            ${remainingAlbums.map((album, i) => renderAlbum(album, i + featuredAlbums.length)).join('')}
-          </div>
+          <div id="gallery-more" class="gallery-more hidden"></div>
         </div>
       `
       : '';
 
     galleryGrid.innerHTML = `${featuredHtml}${remainingHtml}`;
 
-    // Bind lightbox clicks
-    galleryGrid.querySelectorAll('.gallery-event-photo').forEach((fig) => {
-      fig.addEventListener('click', () => {
+    if (!galleryGrid.dataset.galleryBound) {
+      galleryGrid.addEventListener('click', (event) => {
+        const fig = event.target.closest('.gallery-event-photo');
+        if (!fig) return;
         const albumIndex = Number(fig.dataset.albumIndex);
         const idx = Number(fig.dataset.idx);
-        const album = albums[albumIndex];
+        const album = (galleryGrid._albums || [])[albumIndex];
         if (album) openLightbox(album.photos, idx);
       });
-    });
+      galleryGrid.dataset.galleryBound = 'true';
+    }
 
     const toggleBtn = getById('gallery-toggle-all');
     const moreWrap = getById('gallery-more');
     if (toggleBtn && moreWrap) {
       toggleBtn.addEventListener('click', () => {
         const willOpen = moreWrap.classList.contains('hidden');
+        if (willOpen && !moreWrap.dataset.rendered) {
+          moreWrap.innerHTML = remainingAlbums
+            .map((album, i) => renderAlbum(album, i + featuredAlbums.length))
+            .join('');
+          moreWrap.dataset.rendered = 'true';
+        }
         moreWrap.classList.toggle('hidden');
         toggleBtn.setAttribute('aria-expanded', String(willOpen));
         toggleBtn.textContent = willOpen ? 'Show fewer albums' : `View all albums (${remainingAlbums.length})`;
+        if (willOpen && window._revealObserver) {
+          moreWrap.querySelectorAll('.reveal:not(.in-view)').forEach(el => window._revealObserver.observe(el));
+        }
       });
     }
 
@@ -495,15 +505,24 @@ const renderGallery = async () => {
     <div class="gallery-event-header"><h3 class="gallery-event-name">Gallery</h3></div>
     <div class="gallery-event-photos stagger">
       ${flatPhotos.map((p, i) => `
-        <figure class="gallery-event-photo reveal" data-album="Gallery" data-idx="${i}">
+        <figure class="gallery-event-photo reveal" data-album-index="0" data-idx="${i}">
           <img src="${esc(p.src)}" alt="${esc(p.caption)}" loading="lazy" decoding="async" />
           ${p.caption ? `<figcaption>${esc(p.caption)}</figcaption>` : ''}
         </figure>`).join('')}
     </div>
   </div>`;
-  galleryGrid.querySelectorAll('.gallery-event-photo').forEach((fig) => {
-    fig.addEventListener('click', () => openLightbox(flatPhotos, Number(fig.dataset.idx)));
-  });
+  galleryGrid._albums = [{ photos: flatPhotos }];
+  if (!galleryGrid.dataset.galleryBound) {
+    galleryGrid.addEventListener('click', (event) => {
+      const fig = event.target.closest('.gallery-event-photo');
+      if (!fig) return;
+      const albumIndex = Number(fig.dataset.albumIndex);
+      const idx = Number(fig.dataset.idx);
+      const album = (galleryGrid._albums || [])[albumIndex];
+      if (album) openLightbox(album.photos, idx);
+    });
+    galleryGrid.dataset.galleryBound = 'true';
+  }
 };
 
 const renderProgramme = () => {
