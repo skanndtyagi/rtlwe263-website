@@ -1,6 +1,7 @@
 const SUPABASE =
   typeof SUPABASE_URL !== 'undefined' &&
   typeof SUPABASE_ANON_KEY !== 'undefined' &&
+  typeof supabase !== 'undefined' &&
   SUPABASE_URL &&
   SUPABASE_ANON_KEY
     ? supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
