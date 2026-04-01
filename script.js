@@ -534,7 +534,7 @@ const renderTablers = () => {
   if (!grid) return;
   grid.classList.remove('stagger');
   grid.innerHTML = data.tablers
-    .map((t, i) => `<article class="tabler-card" style="animation-delay:${(i * 80)}ms">
+    .map((t, i) => `<article class="tabler-card" role="button" tabindex="0" style="animation-delay:${(i * 80)}ms">
         <div class="tabler-card-inner">
           <div class="tabler-front">
             <img src="${esc(t.photo || 'assets/tabler-placeholder.jpg')}" alt="${esc(t.name)}" loading="lazy" />
@@ -550,16 +550,29 @@ const renderTablers = () => {
       </article>`)
     .join('');
 
-  // Touch devices: tap the card to flip instead of hover
+  // Event delegation on grid for touch devices
   if (window.matchMedia('(hover: none)').matches) {
-    grid.querySelectorAll('.tabler-card').forEach(card => {
-      const handleFlip = (e) => {
+    grid.addEventListener('click', (e) => {
+      const card = e.target.closest('.tabler-card');
+      if (card) {
         e.stopPropagation();
         card.classList.toggle('flipped');
-      };
-      // Handle both click and touch for better iOS Safari support
-      card.addEventListener('click', handleFlip);
-      card.addEventListener('touchend', handleFlip);
+      }
+    });
+    grid.addEventListener('touchend', (e) => {
+      const card = e.target.closest('.tabler-card');
+      if (card) {
+        e.stopPropagation();
+        e.preventDefault();
+        card.classList.toggle('flipped');
+      }
+    });
+    // Keyboard: Enter/Space to flip
+    grid.addEventListener('keydown', (e) => {
+      if ((e.key === 'Enter' || e.key === ' ') && e.target.classList.contains('tabler-card')) {
+        e.preventDefault();
+        e.target.classList.toggle('flipped');
+      }
     });
   }
 };
