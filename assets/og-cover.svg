@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <!-- Dark background gradient -->
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%"   stop-color="#0e1828"/>
+      <stop offset="60%"  stop-color="#0b1320"/>
+      <stop offset="100%" stop-color="#07101a"/>
+    </linearGradient>
+    <!-- Gold gradient for accent bar -->
+    <linearGradient id="gold" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%"   stop-color="#e2bf86"/>
+      <stop offset="100%" stop-color="#b8873d"/>
+    </linearGradient>
+    <!-- Subtle radial glow centre-left -->
+    <radialGradient id="glow" cx="30%" cy="50%" r="55%">
+      <stop offset="0%"   stop-color="#1c2e48" stop-opacity="1"/>
+      <stop offset="100%" stop-color="#07101a" stop-opacity="0"/>
+    </radialGradient>
+    <clipPath id="logoClip">
+      <circle cx="96" cy="315" r="48"/>
+    </clipPath>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <rect width="1200" height="630" fill="url(#glow)"/>
+
+  <!-- Gold accent bar left edge -->
+  <rect x="0" y="0" width="6" height="630" fill="url(#gold)" rx="3"/>
+
+  <!-- Decorative grid dots top-right -->
+  <g fill="#dcb26c" opacity="0.08">
+    <circle cx="900" cy="80"  r="3"/><circle cx="940" cy="80"  r="3"/><circle cx="980" cy="80"  r="3"/><circle cx="1020" cy="80" r="3"/><circle cx="1060" cy="80" r="3"/><circle cx="1100" cy="80" r="3"/>
+    <circle cx="900" cy="120" r="3"/><circle cx="940" cy="120" r="3"/><circle cx="980" cy="120" r="3"/><circle cx="1020" cy="120" r="3"/><circle cx="1060" cy="120" r="3"/><circle cx="1100" cy="120" r="3"/>
+    <circle cx="900" cy="160" r="3"/><circle cx="940" cy="160" r="3"/><circle cx="980" cy="160" r="3"/><circle cx="1020" cy="160" r="3"/><circle cx="1060" cy="160" r="3"/><circle cx="1100" cy="160" r="3"/>
+    <circle cx="900" cy="200" r="3"/><circle cx="940" cy="200" r="3"/><circle cx="980" cy="200" r="3"/><circle cx="1020" cy="200" r="3"/><circle cx="1060" cy="200" r="3"/><circle cx="1100" cy="200" r="3"/>
+    <circle cx="900" cy="240" r="3"/><circle cx="940" cy="240" r="3"/><circle cx="980" cy="240" r="3"/><circle cx="1020" cy="240" r="3"/><circle cx="1060" cy="240" r="3"/><circle cx="1100" cy="240" r="3"/>
+  </g>
+
+  <!-- Decorative circle motif top-right -->
+  <circle cx="1100" cy="140" r="160" fill="none" stroke="#dcb26c" stroke-width="1" opacity="0.07"/>
+  <circle cx="1100" cy="140" r="220" fill="none" stroke="#dcb26c" stroke-width="1" opacity="0.04"/>
+
+  <!-- Logo circle background -->
+  <circle cx="96" cy="315" r="48" fill="#131f30" stroke="#dcb26c" stroke-width="1.5" opacity="0.6"/>
+  <!-- Logo placeholder text (RT roundel style) -->
+  <text x="96" y="322" text-anchor="middle" font-family="Georgia,serif" font-size="22" font-weight="700" fill="#dcb26c">RT</text>
+
+  <!-- Eyebrow label -->
+  <text x="168" y="272" font-family="'Helvetica Neue',Arial,sans-serif" font-size="18" font-weight="700" letter-spacing="4" fill="#dcb26c" text-transform="uppercase">ROUND TABLE</text>
+
+  <!-- Main title -->
+  <text x="168" y="328" font-family="Georgia,'Palatino Linotype',serif" font-size="58" font-weight="700" fill="#eef2f8" letter-spacing="-0.5">London West End</text>
+  <text x="168" y="390" font-family="Georgia,'Palatino Linotype',serif" font-size="58" font-weight="700" fill="#eef2f8" letter-spacing="-0.5">No. 623</text>
+
+  <!-- Gold divider line -->
+  <rect x="168" y="415" width="480" height="3" fill="url(#gold)" rx="2"/>
+
+  <!-- Tagline -->
+  <text x="168" y="456" font-family="'Helvetica Neue',Arial,sans-serif" font-size="22" fill="#b7c2d5" letter-spacing="0.3">Fellowship · Socials · Service · Central London</text>
+
+  <!-- URL badge bottom right -->
+  <rect x="960" y="562" width="200" height="42" rx="21" fill="#dcb26c" fill-opacity="0.12" stroke="#dcb26c" stroke-width="1" stroke-opacity="0.35"/>
+  <text x="1060" y="589" text-anchor="middle" font-family="'Helvetica Neue',Arial,sans-serif" font-size="19" font-weight="600" fill="#dcb26c" letter-spacing="0.5">lwe623.uk</text>
+
+  <!-- Bottom gold bar -->
+  <rect x="0" y="618" width="1200" height="12" fill="url(#gold)" opacity="0.25"/>
+</svg>
