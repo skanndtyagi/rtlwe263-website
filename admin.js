@@ -628,13 +628,20 @@ const createPhotoItemHTML = (photo) => `
 const bindPhotoItemActions = (item) => {
   const id = item.dataset.id;
   const saveBtn = item.querySelector('.gallery-btn-save-caption');
+  const captionInput = item.querySelector('.gallery-caption-input');
+  if (captionInput) {
+    captionInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') { e.preventDefault(); saveBtn?.click(); }
+    });
+  }
   if (saveBtn) {
     saveBtn.addEventListener('click', async () => {
-      const caption = item.querySelector('.gallery-caption-input').value.trim();
+      const caption = captionInput?.value.trim() ?? '';
       if (isSupabaseReady()) {
         const { error } = await SUPABASE.from('gallery_images').update({ caption }).eq('id', id);
         if (error) { showAdminMessage('Failed to save caption.', 'notice'); return; }
       }
+      item.classList.remove('gallery-photo-item--new');
       showAdminMessage('Caption saved.');
     });
   }
@@ -659,33 +666,69 @@ const handleFileUpload = async (files, album, progressEl, photoGrid) => {
   }
   const fileArr = Array.from(files);
   progressEl.classList.remove('hidden');
-  progressEl.textContent = `Compressing & uploading 0 of ${fileArr.length}…`;
-  let uploaded = 0;
-  for (const file of fileArr) {
-    progressEl.textContent = `Compressing & uploading ${uploaded + 1} of ${fileArr.length}…`;
-    const url = await uploadGalleryFile(file, album.event_name);
+  let dbInserted = 0;
+  let firstNewItem = null;
+
+  for (let i = 0; i < fileArr.length; i++) {
+    progressEl.textContent = `Compressing & uploading ${i + 1} of ${fileArr.length}…`;
+    const url = await uploadGalleryFile(fileArr[i], album.event_name);
     if (url) {
-      const { data: newRecord } = await SUPABASE.from('gallery_images').insert({
+      const { data: newRecord, error: dbError } = await SUPABASE.from('gallery_images').insert({
         src: url,
         caption: '',
         event_name: album.event_name,
         event_date: album.event_date || null,
-        order: Date.now(),
+        order: Date.now() + i,
         active: true,
       }).select().single();
-      if (newRecord) {
+      if (dbError) {
+        console.error('DB insert error:', dbError);
+        showAdminMessage(`Photo uploaded to storage but failed to save: ${dbError.message}`, 'notice');
+      } else if (newRecord) {
+        dbInserted++;
         const temp = document.createElement('div');
         temp.innerHTML = createPhotoItemHTML(newRecord);
         const item = temp.firstElementChild;
+        item.classList.add('gallery-photo-item--new');
         photoGrid.appendChild(item);
         bindPhotoItemActions(item);
+        if (!firstNewItem) firstNewItem = item;
       }
     }
-    uploaded++;
-    progressEl.textContent = `Uploading ${uploaded} of ${fileArr.length}…`;
   }
-  progressEl.textContent = `✓ ${uploaded} photo${uploaded !== 1 ? 's' : ''} uploaded.`;
-  setTimeout(() => progressEl.classList.add('hidden'), 3000);
+
+  // Update album card header count
+  const card = photoGrid.closest('.gallery-album-card');
+  if (card) {
+    const totalItems = card.querySelectorAll('.gallery-photo-item').length;
+    const metaEl = card.querySelector('.gallery-album-meta');
+    if (metaEl) {
+      metaEl.textContent = `${album.event_date ? formatDisplayDate(album.event_date) : 'No date'} · ${totalItems} photo${totalItems !== 1 ? 's' : ''}`;
+    }
+    // Add new thumb to preview strip if under 5
+    if (firstNewItem) {
+      const preview = card.querySelector('.gallery-album-preview');
+      const thumbCount = preview ? preview.querySelectorAll('img').length : 0;
+      if (preview && thumbCount < 5) {
+        const img = document.createElement('img');
+        img.className = 'gallery-album-thumb';
+        img.src = firstNewItem.querySelector('img')?.src || '';
+        preview.insertBefore(img, preview.firstChild);
+      }
+    }
+  }
+
+  progressEl.textContent = `✓ ${dbInserted} of ${fileArr.length} photo${fileArr.length !== 1 ? 's' : ''} added to gallery.`;
+  setTimeout(() => progressEl.classList.add('hidden'), 5000);
+
+  // Scroll to first new photo and focus its caption
+  if (firstNewItem) {
+    firstNewItem.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    setTimeout(() => {
+      const captionInput = firstNewItem.querySelector('.gallery-caption-input');
+      if (captionInput) { captionInput.focus(); captionInput.select(); }
+    }, 400);
+  }
 };
 
 const confirmDeleteAlbum = async (album) => {
