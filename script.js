@@ -528,9 +528,9 @@ const closeEventDetail = () => {
 const renderTablers = () => {
   const grid = getById('tablers-grid');
   if (!grid) return;
-  grid.classList.add('stagger');
+  grid.classList.remove('stagger');
   grid.innerHTML = data.tablers
-    .map((t) => `<article class="tabler-card reveal">
+    .map((t, i) => `<article class="tabler-card" style="animation-delay:${(i * 80)}ms">
         <div class="tabler-card-inner">
           <div class="tabler-front">
             <img src="${esc(t.photo || 'assets/tabler-placeholder.jpg')}" alt="${esc(t.name)}" loading="lazy" />
@@ -720,9 +720,11 @@ const renderAll = () => {
   renderTablers();
   renderSchema();
   refreshEntries();
-  // Re-observe any newly rendered elements
+  // Re-observe any newly rendered elements (rAF ensures layout is complete)
   if (window._revealObserver) {
-    document.querySelectorAll('.reveal:not(.in-view)').forEach(el => window._revealObserver.observe(el));
+    requestAnimationFrame(() => {
+      document.querySelectorAll('.reveal:not(.in-view)').forEach(el => window._revealObserver.observe(el));
+    });
   }
 };
 
