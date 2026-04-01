@@ -537,37 +537,32 @@ const renderTablers = () => {
   // Touch devices: expandable card layout (no 3D flip)
   if (window.matchMedia('(hover: none)').matches) {
     grid.innerHTML = data.tablers
-      .map((t, i) => `<article class="tabler-card tabler-mobile" role="button" tabindex="0" style="animation-delay:${(i * 80)}ms" data-name="${esc(t.name)}">
+      .map((t, i) => `<article class="tabler-card tabler-mobile" style="animation-delay:${(i * 80)}ms" data-name="${esc(t.name)}">
           <div class="tabler-front">
             <img src="${esc(t.photo || 'assets/tabler-placeholder.jpg')}" alt="${esc(t.name)}" loading="lazy" />
             <h3>${esc(t.name)}</h3>
             <p class="title">${esc(t.title)}</p>
-            <p class="tap-note">Tap for bio</p>
+            <p class="tap-note">Member profile</p>
+            <button class="tabler-bio-btn" type="button" aria-expanded="false">Read bio</button>
           </div>
-          <div class="tabler-bio-expand" style="display:none;">
+          <div class="tabler-bio-expand" hidden>
             <p>${esc(t.bio)}</p>
           </div>
         </article>`)
       .join('');
     
     if (!grid.dataset.mobileTablersBound) {
-      // Simple tap-to-expand using event delegation
+      // Clean expand/collapse interaction via explicit CTA button
       grid.addEventListener('click', (e) => {
-        const card = e.target.closest('.tabler-mobile');
-        if (card) {
-          e.stopPropagation();
-          const bioDiv = card.querySelector('.tabler-bio-expand');
-          if (bioDiv) bioDiv.style.display = bioDiv.style.display === 'none' ? 'block' : 'none';
-        }
-      });
-
-      // Keyboard support
-      grid.addEventListener('keydown', (e) => {
-        if ((e.key === 'Enter' || e.key === ' ') && e.target.classList.contains('tabler-mobile')) {
-          e.preventDefault();
-          const bioDiv = e.target.querySelector('.tabler-bio-expand');
-          if (bioDiv) bioDiv.style.display = bioDiv.style.display === 'none' ? 'block' : 'none';
-        }
+        const toggleBtn = e.target.closest('.tabler-bio-btn');
+        if (!toggleBtn) return;
+        const card = toggleBtn.closest('.tabler-mobile');
+        const bioDiv = card?.querySelector('.tabler-bio-expand');
+        if (!card || !bioDiv) return;
+        const isOpen = card.classList.toggle('is-open');
+        bioDiv.hidden = !isOpen;
+        toggleBtn.setAttribute('aria-expanded', String(isOpen));
+        toggleBtn.textContent = isOpen ? 'Hide bio' : 'Read bio';
       });
 
       grid.dataset.mobileTablersBound = 'true';
