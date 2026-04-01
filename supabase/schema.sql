@@ -36,11 +36,13 @@ alter table gallery_images add column if not exists event_date date;
 -- Enable Row Level Security
 alter table gallery_images enable row level security;
 -- Public can read active gallery images
-create policy if not exists "Public gallery images readable"
+drop policy if exists "Public gallery images readable" on gallery_images;
+create policy "Public gallery images readable"
   on gallery_images for select to anon
   using (active = true);
 -- Authenticated (admin) can do everything
-create policy if not exists "Authenticated users manage gallery"
+drop policy if exists "Authenticated users manage gallery" on gallery_images;
+create policy "Authenticated users manage gallery"
   on gallery_images for all to authenticated
   using (true) with check (true);
 
@@ -54,14 +56,17 @@ insert into storage.buckets (id, name, public)
   on conflict (id) do nothing;
 
 -- Allow public to read gallery files
-create policy if not exists "Public gallery reads"
+drop policy if exists "Public gallery reads" on storage.objects;
+create policy "Public gallery reads"
   on storage.objects for select to anon
   using (bucket_id = 'gallery');
 -- Allow authenticated admin to upload / delete gallery files
-create policy if not exists "Admin gallery uploads"
+drop policy if exists "Admin gallery uploads" on storage.objects;
+create policy "Admin gallery uploads"
   on storage.objects for insert to authenticated
   with check (bucket_id = 'gallery');
-create policy if not exists "Admin gallery deletes"
+drop policy if exists "Admin gallery deletes" on storage.objects;
+create policy "Admin gallery deletes"
   on storage.objects for delete to authenticated
   using (bucket_id = 'gallery');
 
@@ -90,7 +95,10 @@ create table if not exists tablers (
   updated_at timestamp with time zone default now()
 );
 
-create type if not exists guestbook_status as enum ('pending', 'approved', 'rejected');
+do $$ begin
+  create type guestbook_status as enum ('pending', 'approved', 'rejected');
+exception when duplicate_object then null;
+end $$;
 
 create table if not exists guestbook_entries (
   id uuid default gen_random_uuid() primary key,
