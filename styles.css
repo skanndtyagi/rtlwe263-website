@@ -1087,13 +1087,13 @@ input:focus, textarea:focus, select:focus {
   margin: 1.5rem auto 0;
   max-width: 980px;
   display: grid;
-  grid-template-columns: minmax(200px, 230px) minmax(0, 1fr);
+  grid-template-columns: minmax(160px, 190px) minmax(0, 1fr);
   gap: 1.35rem;
   align-items: start;
 }
 .chairman-profile {
   margin: 0;
-  width: min(230px, 100%);
+  width: min(190px, 100%);
   justify-self: start;
   border: 1px solid rgba(220, 178, 108, 0.28);
   border-radius: 20px;
@@ -1106,7 +1106,13 @@ input:focus, textarea:focus, select:focus {
   width: 100%;
   aspect-ratio: 4 / 5;
   object-fit: cover;
-  object-position: center 18%;
+  object-position: center 8%;
+  filter: grayscale(1) sepia(.62) hue-rotate(342deg) saturate(.95) contrast(1.02) brightness(.95);
+  transition: filter .4s ease;
+}
+.chairman-profile:hover img,
+.chairman-profile:focus-within img {
+  filter: none;
 }
 .chairman-profile figcaption {
   display: grid;
@@ -1296,7 +1302,7 @@ input:focus, textarea:focus, select:focus {
     gap: .9rem;
   }
   .chairman-profile {
-    width: min(220px, 100%);
+    width: min(155px, 100%);
     justify-self: center;
     border-radius: 18px;
   }
