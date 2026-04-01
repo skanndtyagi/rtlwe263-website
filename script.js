@@ -392,6 +392,9 @@ const renderGallery = async () => {
   const remotePhotos = await fetchGalleryFromSupabase();
 
   if (remotePhotos && remotePhotos.length) {
+    const PREVIEW_ALBUM_LIMIT = 3;
+    const PREVIEW_PHOTOS_PER_ALBUM = 4;
+
     // Group by event_name
     const albumMap = {};
     remotePhotos.forEach((img) => {
@@ -401,17 +404,28 @@ const renderGallery = async () => {
       }
       albumMap[key].photos.push(img);
     });
-    const albums = Object.values(albumMap);
-    galleryGrid.innerHTML = albums.map((album) => {
+
+    const albums = Object.values(albumMap).sort((a, b) => {
+      const da = a.event_date ? new Date(a.event_date).getTime() : 0;
+      const db = b.event_date ? new Date(b.event_date).getTime() : 0;
+      return db - da;
+    });
+
+    const featuredAlbums = albums.slice(0, PREVIEW_ALBUM_LIMIT);
+    const remainingAlbums = albums.slice(PREVIEW_ALBUM_LIMIT);
+
+    const renderAlbum = (album, albumIndex) => {
       const dateStr = album.event_date
         ? new Date(album.event_date + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
         : '';
-      const photosHtml = album.photos.map((p, i) => `
-        <figure class="gallery-event-photo reveal" data-album="${esc(album.event_name)}" data-idx="${i}">
-          <img src="${esc(p.src)}" alt="${esc(p.caption || album.event_name)}" loading="lazy" />
+      const previewPhotos = album.photos.slice(0, PREVIEW_PHOTOS_PER_ALBUM);
+      const photosHtml = previewPhotos.map((p, i) => `
+        <figure class="gallery-event-photo reveal" data-album-index="${albumIndex}" data-idx="${i}">
+          <img src="${esc(p.src)}" alt="${esc(p.caption || album.event_name)}" loading="lazy" decoding="async" />
           ${p.caption ? `<figcaption>${esc(p.caption)}</figcaption>` : ''}
         </figure>
       `).join('');
+
       return `
         <div class="gallery-event-group reveal">
           <div class="gallery-event-header">
@@ -422,17 +436,48 @@ const renderGallery = async () => {
           <div class="gallery-event-photos stagger">${photosHtml}</div>
         </div>
       `;
-    }).join('');
+    };
+
+    const featuredHtml = featuredAlbums
+      .map((album, i) => renderAlbum(album, i))
+      .join('');
+
+    const remainingHtml = remainingAlbums.length
+      ? `
+        <div id="gallery-more-wrap" class="gallery-more-wrap">
+          <button id="gallery-toggle-all" class="btn btn-secondary" type="button" aria-expanded="false">
+            View all albums (${remainingAlbums.length})
+          </button>
+          <div id="gallery-more" class="gallery-more hidden">
+            ${remainingAlbums.map((album, i) => renderAlbum(album, i + featuredAlbums.length)).join('')}
+          </div>
+        </div>
+      `
+      : '';
+
+    galleryGrid.innerHTML = `${featuredHtml}${remainingHtml}`;
 
     // Bind lightbox clicks
     galleryGrid.querySelectorAll('.gallery-event-photo').forEach((fig) => {
       fig.addEventListener('click', () => {
-        const albumName = fig.dataset.album;
+        const albumIndex = Number(fig.dataset.albumIndex);
         const idx = Number(fig.dataset.idx);
-        const album = albums.find((a) => a.event_name === albumName);
+        const album = albums[albumIndex];
         if (album) openLightbox(album.photos, idx);
       });
     });
+
+    const toggleBtn = getById('gallery-toggle-all');
+    const moreWrap = getById('gallery-more');
+    if (toggleBtn && moreWrap) {
+      toggleBtn.addEventListener('click', () => {
+        const willOpen = moreWrap.classList.contains('hidden');
+        moreWrap.classList.toggle('hidden');
+        toggleBtn.setAttribute('aria-expanded', String(willOpen));
+        toggleBtn.textContent = willOpen ? 'Show fewer albums' : `View all albums (${remainingAlbums.length})`;
+      });
+    }
+
     // Trigger reveal observer for async-rendered gallery
     if (window._revealObserver) {
       galleryGrid.querySelectorAll('.reveal:not(.in-view)').forEach(el => window._revealObserver.observe(el));
@@ -451,7 +496,7 @@ const renderGallery = async () => {
     <div class="gallery-event-photos stagger">
       ${flatPhotos.map((p, i) => `
         <figure class="gallery-event-photo reveal" data-album="Gallery" data-idx="${i}">
-          <img src="${esc(p.src)}" alt="${esc(p.caption)}" loading="lazy" />
+          <img src="${esc(p.src)}" alt="${esc(p.caption)}" loading="lazy" decoding="async" />
           ${p.caption ? `<figcaption>${esc(p.caption)}</figcaption>` : ''}
         </figure>`).join('')}
     </div>
@@ -540,7 +585,7 @@ const renderTablers = () => {
     grid.innerHTML = data.tablers
       .map((t, i) => `<article class="tabler-card tabler-mobile" style="animation-delay:${(i * 80)}ms" data-name="${esc(t.name)}">
           <div class="tabler-front">
-            <img src="${esc(t.photo || 'assets/tabler-placeholder.jpg')}" alt="${esc(t.name)}" loading="lazy" />
+            <img src="${esc(t.photo || 'assets/tabler-placeholder.jpg')}" alt="${esc(t.name)}" loading="lazy" decoding="async" />
             <h3>${esc(t.name)}</h3>
             <p class="title">${esc(t.title)}</p>
             <p class="tap-note">Member profile</p>
@@ -574,7 +619,7 @@ const renderTablers = () => {
       .map((t, i) => `<article class="tabler-card" style="animation-delay:${(i * 80)}ms">
           <div class="tabler-card-inner">
             <div class="tabler-front">
-              <img src="${esc(t.photo || 'assets/tabler-placeholder.jpg')}" alt="${esc(t.name)}" loading="lazy" />
+              <img src="${esc(t.photo || 'assets/tabler-placeholder.jpg')}" alt="${esc(t.name)}" loading="lazy" decoding="async" />
               <h3>${esc(t.name)}</h3>
               <p class="title">${esc(t.title)}</p>
               <p class="tap-note">Hover to see bio</p>
