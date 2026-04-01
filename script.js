@@ -553,10 +553,13 @@ const renderTablers = () => {
   // Touch devices: tap the card to flip instead of hover
   if (window.matchMedia('(hover: none)').matches) {
     grid.querySelectorAll('.tabler-card').forEach(card => {
-      card.addEventListener('click', (e) => {
+      const handleFlip = (e) => {
         e.stopPropagation();
         card.classList.toggle('flipped');
-      });
+      };
+      // Handle both click and touch for better iOS Safari support
+      card.addEventListener('click', handleFlip);
+      card.addEventListener('touchend', handleFlip);
     });
   }
 };
