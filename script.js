@@ -633,20 +633,16 @@ const renderTablers = () => {
       grid.dataset.mobileTablersBound = 'true';
     }
   } else {
-    // Desktop: 3D flip on hover
+    // Desktop: photo goes full colour on hover, bio slides in below
     grid.innerHTML = data.tablers
       .map((t, i) => `<article class="tabler-card" style="animation-delay:${(i * 80)}ms">
-          <div class="tabler-card-inner">
-            <div class="tabler-front">
-              <img src="${esc(t.photo || 'assets/tabler-placeholder.jpg')}" alt="${esc(t.name)}" loading="lazy" decoding="async" />
-              <h3>${esc(t.name)}</h3>
-              <p class="title">${esc(t.title)}</p>
-              <p class="tap-note">Hover to see bio</p>
-            </div>
-            <div class="tabler-back">
-              <p class="title">${esc(t.title)}</p>
-              <p>${esc(t.bio)}</p>
-            </div>
+          <div class="tabler-front">
+            <img src="${esc(t.photo || 'assets/tabler-placeholder.jpg')}" alt="${esc(t.name)}" loading="lazy" decoding="async" />
+            <h3>${esc(t.name)}</h3>
+            <p class="title">${esc(t.title)}</p>
+          </div>
+          <div class="tabler-bio-panel">
+            <p>${esc(t.bio)}</p>
           </div>
         </article>`)
       .join('');
