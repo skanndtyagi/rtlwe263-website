@@ -403,19 +403,19 @@ const renderGallery = async () => {
         ? new Date(album.event_date + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
         : '';
       const photosHtml = album.photos.map((p, i) => `
-        <figure class="gallery-event-photo anim-rise" data-album="${esc(album.event_name)}" data-idx="${i}">
+        <figure class="gallery-event-photo reveal" data-album="${esc(album.event_name)}" data-idx="${i}">
           <img src="${esc(p.src)}" alt="${esc(p.caption || album.event_name)}" loading="lazy" />
           ${p.caption ? `<figcaption>${esc(p.caption)}</figcaption>` : ''}
         </figure>
       `).join('');
       return `
-        <div class="gallery-event-group">
+        <div class="gallery-event-group reveal">
           <div class="gallery-event-header">
             <h3 class="gallery-event-name">${esc(album.event_name)}</h3>
             ${dateStr ? `<span class="gallery-event-date">${esc(dateStr)}</span>` : ''}
             <span class="gallery-event-count">${album.photos.length} photo${album.photos.length !== 1 ? 's' : ''}</span>
           </div>
-          <div class="gallery-event-photos">${photosHtml}</div>
+          <div class="gallery-event-photos stagger">${photosHtml}</div>
         </div>
       `;
     }).join('');
@@ -429,6 +429,10 @@ const renderGallery = async () => {
         if (album) openLightbox(album.photos, idx);
       });
     });
+    // Trigger reveal observer for async-rendered gallery
+    if (window._revealObserver) {
+      galleryGrid.querySelectorAll('.reveal:not(.in-view)').forEach(el => window._revealObserver.observe(el));
+    }
     return;
   }
 
@@ -438,11 +442,11 @@ const renderGallery = async () => {
     return;
   }
   const flatPhotos = data.gallery.map((item) => ({ src: item?.src || item, caption: item?.caption || '' }));
-  galleryGrid.innerHTML = `<div class="gallery-event-group">
+  galleryGrid.innerHTML = `<div class="gallery-event-group reveal">
     <div class="gallery-event-header"><h3 class="gallery-event-name">Gallery</h3></div>
-    <div class="gallery-event-photos">
+    <div class="gallery-event-photos stagger">
       ${flatPhotos.map((p, i) => `
-        <figure class="gallery-event-photo anim-rise" data-album="Gallery" data-idx="${i}">
+        <figure class="gallery-event-photo reveal" data-album="Gallery" data-idx="${i}">
           <img src="${esc(p.src)}" alt="${esc(p.caption)}" loading="lazy" />
           ${p.caption ? `<figcaption>${esc(p.caption)}</figcaption>` : ''}
         </figure>`).join('')}
@@ -476,7 +480,7 @@ const renderProgramme = () => {
     const date = new Date(event.date || '');
     const day = String(date.getDate() || '').padStart(2, '0');
     const month = date.toLocaleDateString('en-GB', { month: 'short' }).toUpperCase();
-    html += `<article class="event-card anim-rise" data-index="${index}">
+    html += `<article class="event-card reveal" data-index="${index}">
       <div class="event-card-date">
         <span class="event-card-day">${esc(day || 'TBD')}</span>
         <span class="event-card-month">${esc(month || 'TBD')}</span>
@@ -524,8 +528,9 @@ const closeEventDetail = () => {
 const renderTablers = () => {
   const grid = getById('tablers-grid');
   if (!grid) return;
+  grid.classList.add('stagger');
   grid.innerHTML = data.tablers
-    .map((t) => `<article class="tabler-card anim-rise">
+    .map((t) => `<article class="tabler-card reveal">
         <div class="tabler-card-inner">
           <div class="tabler-front">
             <img src="${esc(t.photo || 'assets/tabler-placeholder.jpg')}" alt="${esc(t.name)}" loading="lazy" />
@@ -715,10 +720,30 @@ const renderAll = () => {
   renderTablers();
   renderSchema();
   refreshEntries();
+  // Re-observe any newly rendered elements
+  if (window._revealObserver) {
+    document.querySelectorAll('.reveal:not(.in-view)').forEach(el => window._revealObserver.observe(el));
+  }
+};
+
+const initScrollReveal = () => {
+  if (!('IntersectionObserver' in window)) {
+    document.querySelectorAll('.reveal').forEach(el => el.classList.add('in-view'));
+    return;
+  }
+  const observer = new IntersectionObserver(
+    (entries) => entries.forEach(e => {
+      if (e.isIntersecting) { e.target.classList.add('in-view'); observer.unobserve(e.target); }
+    }),
+    { threshold: 0.1, rootMargin: '0px 0px -40px 0px' }
+  );
+  window._revealObserver = observer;
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 };
 
 const initSite = async () => {
   injectLightbox();
+  initScrollReveal();
   const remote = await fetchSiteData();
   if (remote) {
     data = mergeSiteData(remote);

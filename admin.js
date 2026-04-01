@@ -203,6 +203,27 @@ const showAdminMessage = (text, type = 'notice') => {
   showAdminMessage._timer = setTimeout(() => { if (msg) msg.classList.remove('visible'); }, 3500);
 };
 
+// Button state utility — drives all micro-interaction feedback
+// states: 'idle' | 'loading' | 'saved' | 'clean'
+const setBtnState = (btn, state, label) => {
+  if (!btn) return;
+  btn.classList.remove('btn--loading', 'btn--saved');
+  btn.disabled = false;
+  if (state === 'clean') {
+    btn.disabled = true;
+    if (label !== undefined) btn.textContent = label;
+  } else if (state === 'loading') {
+    btn.disabled = true;
+    btn.classList.add('btn--loading');
+    btn.textContent = 'Saving…';
+  } else if (state === 'saved') {
+    btn.classList.add('btn--saved');
+    btn.textContent = '✓ Saved';
+  } else if (state === 'idle') {
+    if (label !== undefined) btn.textContent = label;
+  }
+};
+
 const readApprovedEntries = () => {
   try {
     return JSON.parse(localStorage.getItem(GUESTBOOK_APPROVED_KEY) || '[]');
@@ -274,13 +295,6 @@ const saveHero = () => {
   showAdminMessage('Hero & About saved successfully.');
 };
 
-const saveGallery = () => {
-  data.gallery = collectImageRows('admin-gallery-list');
-  save(data);
-  renderAll();
-  showAdminMessage('Gallery saved successfully.');
-};
-
 const saveEvents = () => {
   data.programme = collectEventRows();
   save(data);
@@ -304,6 +318,18 @@ const saveSettings = () => {
   if (adminUrl) data.integrations.adminDashboardUrl = adminUrl.value.trim();
   save(data);
   showAdminMessage('Settings saved successfully.');
+};
+
+// Wraps a save function to give its button loading → saved → idle feedback
+const withSaveFeedback = (btnId, saveFn) => () => {
+  const btn = adminGet(btnId);
+  const originalLabel = btn?.textContent ?? 'Save Changes';
+  setBtnState(btn, 'loading');
+  saveFn();
+  setBtnState(btn, 'saved');
+  setTimeout(() => {
+    if (btn?.classList.contains('btn--saved')) setBtnState(btn, 'idle', originalLabel);
+  }, 2200);
 };
 
 const approveEntry = (index) => {
@@ -354,7 +380,7 @@ const bindAdminEvents = () => {
   });
 
   // Hero & About
-  adminSafe('admin-save-hero', 'click', saveHero);
+  adminSafe('admin-save-hero', 'click', withSaveFeedback('admin-save-hero', saveHero));
   adminSafe('admin-add-hero-slide', 'click', () => {
     const list = adminGet('admin-hero-slide-list');
     if (list) list.appendChild(createImageRow({}));
@@ -366,21 +392,21 @@ const bindAdminEvents = () => {
   adminSafe('admin-confirm-album', 'click', createAlbum);
 
   // Programme
-  adminSafe('admin-save-events', 'click', saveEvents);
+  adminSafe('admin-save-events', 'click', withSaveFeedback('admin-save-events', saveEvents));
   adminSafe('admin-add-event', 'click', () => {
     const list = adminGet('admin-event-list');
     if (list) list.appendChild(createEventRow({}));
   });
 
   // Tablers
-  adminSafe('admin-save-tablers', 'click', saveTablers);
+  adminSafe('admin-save-tablers', 'click', withSaveFeedback('admin-save-tablers', saveTablers));
   adminSafe('admin-add-tabler', 'click', () => {
     const list = adminGet('admin-tabler-list');
     if (list) list.appendChild(createTablerRow({}));
   });
 
   // Settings
-  adminSafe('admin-save-settings', 'click', saveSettings);
+  adminSafe('admin-save-settings', 'click', withSaveFeedback('admin-save-settings', saveSettings));
 
   // Reset
   adminSafe('admin-reset-content', 'click', () => {
@@ -612,39 +638,68 @@ const renderAlbumBody = (body, album, photos) => {
   body.querySelectorAll('.gallery-photo-item').forEach((item) => bindPhotoItemActions(item));
 };
 
-const createPhotoItemHTML = (photo) => `
+const createPhotoItemHTML = (photo) => {
+  const hasCaption = !!(photo.caption && photo.caption.trim());
+  return `
   <div class="gallery-photo-item" data-id="${esc(photo.id)}">
     <div class="gallery-photo-img-wrap">
       <img src="${esc(photo.src)}" alt="${esc(photo.caption || '')}" loading="lazy" />
     </div>
     <div class="gallery-photo-caption-row">
-      <input class="gallery-caption-input" value="${esc(photo.caption || '')}" placeholder="Add a caption…" />
-      <button class="btn btn-secondary gallery-btn-save-caption">Save</button>
-      <button class="btn btn-secondary gallery-btn-del-photo">✕</button>
+      <textarea class="gallery-caption-input" rows="2" placeholder="Add a caption…">${esc(photo.caption || '')}</textarea>
+      <div class="gallery-caption-actions">
+        <button class="btn btn-secondary gallery-btn-save-caption"${hasCaption ? ' disabled' : ''}>${hasCaption ? '✓ Saved' : 'Save'}</button>
+        <button class="btn btn-secondary gallery-btn-del-photo">✕</button>
+      </div>
     </div>
   </div>
-`;
+`;};
 
 const bindPhotoItemActions = (item) => {
   const id = item.dataset.id;
   const saveBtn = item.querySelector('.gallery-btn-save-caption');
   const captionInput = item.querySelector('.gallery-caption-input');
+
+  // Track original caption to enable/disable Save when dirty
+  let originalCaption = captionInput?.value ?? '';
+
+  const syncSaveState = () => {
+    if (!saveBtn || !captionInput) return;
+    const isDirty = captionInput.value !== originalCaption;
+    if (isDirty) {
+      setBtnState(saveBtn, 'idle', 'Save');
+    } else {
+      setBtnState(saveBtn, originalCaption ? 'saved' : 'clean', originalCaption ? '✓ Saved' : 'Save');
+    }
+  };
+
   if (captionInput) {
+    captionInput.addEventListener('input', syncSaveState);
     captionInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') { e.preventDefault(); saveBtn?.click(); }
+      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); if (!saveBtn?.disabled) saveBtn?.click(); }
     });
   }
+
   if (saveBtn) {
     saveBtn.addEventListener('click', async () => {
-      const caption = captionInput?.value.trim() ?? '';
+      const caption = captionInput?.value?.trim() ?? '';
+      setBtnState(saveBtn, 'loading');
       if (isSupabaseReady()) {
         const { error } = await SUPABASE.from('gallery_images').update({ caption }).eq('id', id);
-        if (error) { showAdminMessage('Failed to save caption.', 'notice'); return; }
+        if (error) {
+          showAdminMessage('Failed to save caption.', 'notice');
+          setBtnState(saveBtn, 'idle', 'Save');
+          return;
+        }
       }
+      originalCaption = caption;
       item.classList.remove('gallery-photo-item--new');
-      showAdminMessage('Caption saved.');
+      setBtnState(saveBtn, 'saved', '✓ Saved');
+      // Mark saved button as visually saved but keep disabled (caption is clean)
+      saveBtn.disabled = true;
     });
   }
+
   const delBtn = item.querySelector('.gallery-btn-del-photo');
   if (delBtn) {
     delBtn.addEventListener('click', async () => {
