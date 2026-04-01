@@ -133,7 +133,10 @@ a { color: var(--gold); }
   height: 72px;
   object-fit: contain;
   margin-bottom: 1.1rem;
-  filter: drop-shadow(0 3px 12px rgba(0,0,0,0.5));
+  opacity: 1;
+  transition: opacity .3s ease;
+  transform: translateY(0);
+  animation: none;
 }
 .eyebrow {
   color: var(--gold);
@@ -480,7 +483,21 @@ a { color: var(--gold); }
   overflow: visible;
   box-shadow: none;
 }
-.tabler-front img { width: 100%; aspect-ratio: 3 / 4; object-fit: cover; object-position: center 25%; border-radius: 10px; margin-bottom: .7rem; }
+.tabler-front img {
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+  object-position: center 25%;
+  border-radius: 10px;
+  margin-bottom: .7rem;
+  filter: grayscale(1) sepia(.65) hue-rotate(342deg) saturate(.95) contrast(1.02) brightness(.95);
+  transition: transform .5s ease, filter .45s ease;
+}
+.tabler-card:hover .tabler-front img,
+.tabler-card:focus-within .tabler-front img,
+.tabler-mobile.is-open .tabler-front img {
+  filter: none;
+}
 .tabler-card:not(.tabler-mobile) .tabler-front img {
   aspect-ratio: 4 / 5;
   max-height: 56%;
@@ -965,7 +982,7 @@ input:focus, textarea:focus, select:focus {
 .stagger > *:nth-child(n+9){ transition-delay: .64s;  }
 @media (prefers-reduced-motion: reduce) {
   .reveal, .btn, .gallery-event-photo img, .tabler-card-inner,
-  .gallery-photo-item--new, body::before, body::after {
+  .gallery-photo-item--new, .timeline-item, body::before, body::after {
     transition: none !important;
     animation: none !important;
     opacity: 1 !important;
@@ -1231,6 +1248,12 @@ input:focus, textarea:focus, select:focus {
   font-size: .9rem;
 }
 .history-achievements li::marker { color: var(--gold); }
+
+@media (hover: none), (pointer: coarse) {
+  .tabler-front img {
+    filter: none;
+  }
+}
 
 /* ---- Join Section ---- */
 .join-card {
