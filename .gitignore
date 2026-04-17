@@ -3,3 +3,4 @@
 
 # Optional folders
 node_modules/
+.worktrees/
