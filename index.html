@@ -65,6 +65,7 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="css/cookie-consent.css" />
   </head>
   <body>
     <header class="site-header">
@@ -365,9 +366,27 @@
       </div>
     </footer>
 
+    <!-- Cookie Consent Banner -->
+    <div id="cookie-consent-banner" class="hidden">
+      <div class="cookie-consent-container">
+        <div class="cookie-consent-text">
+          <p>
+            We use cookies to improve your experience on our site. Essential cookies are required for basic functionality.
+            You can choose to accept all cookies (including analytics) or only essential cookies.
+            <a href="privacy.html" class="btn-learn-more">Learn more in our Privacy Policy</a>
+          </p>
+        </div>
+        <div class="cookie-consent-actions">
+          <button id="accept-all-cookies" class="cookie-consent-btn btn-accept-all">Accept All</button>
+          <button id="accept-essential-only" class="cookie-consent-btn btn-essential-only">Essential Only</button>
+        </div>
+      </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
     <script src="supabase-config.js"></script>
     <script src="supabase-client.js"></script>
+    <script src="js/cookie-consent.js"></script>
     <script src="script.js"></script>
   </body>
 </html>

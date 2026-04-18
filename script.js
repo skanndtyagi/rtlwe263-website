@@ -871,6 +871,13 @@ const bindGuestbook = () => {
 
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
+
+    // Check consent before submitting
+    if (typeof hasConsent === 'function' && !hasConsent('essential')) {
+      alert('Please accept cookies to use this feature. The cookie consent banner will appear if you refresh the page.');
+      return;
+    }
+
     const fd = new FormData(event.currentTarget);
     const entry = {
       name: String(fd.get('name') || '').trim(),
