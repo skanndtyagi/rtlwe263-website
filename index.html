@@ -262,10 +262,14 @@
             <p class="muted">National and international Tablers can leave a digital note after meeting the Westenders.</p>
             <p><a id="admin-approve-link" class="btn btn-secondary" href="#" hidden>Open Admin Approval Dashboard</a></p>
             <form id="guestbook-form" class="guestbook-form">
-              <label>Name<input name="name" required maxlength="60" /></label>
-              <label>Table / Club<input name="club" required maxlength="80" /></label>
-              <label>Message<textarea name="message" required maxlength="400"></textarea></label>
+              <label>Name<input name="name" required minlength="2" maxlength="60" placeholder="Your Name" /></label>
+              <label>Table / Club<input name="club" required minlength="2" maxlength="80" placeholder="Your Table/Club" /></label>
+              <label>Message
+                <textarea name="message" id="guestbook-message" required minlength="10" maxlength="400" placeholder="Your message to the Westenders..."></textarea>
+                <div class="character-count"><span id="char-count">0</span> / 400</div>
+              </label>
               <button class="btn btn-primary" type="submit">Sign the Book</button>
+              <div id="guestbook-status" class="guestbook-status"></div>
             </form>
           </div>
           <div>

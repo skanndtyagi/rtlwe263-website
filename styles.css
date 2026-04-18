@@ -599,12 +599,60 @@ a { color: var(--gold); }
 }
 
 .guestbook-form { padding: 1rem; display: grid; gap: .65rem; }
-label { display: grid; gap: .35rem; font-weight: 600; }
+label { display: grid; gap: .35rem; font-weight: 600; position: relative; }
 input, textarea {
   width: 100%; border-radius: 10px; border: 1px solid var(--line); padding: .65rem .7rem;
   background: #0d1522; color: var(--text); font: inherit;
 }
 textarea { min-height: 120px; resize: vertical; }
+.character-count {
+  font-size: 0.85rem;
+  color: var(--muted);
+  text-align: right;
+  margin-top: 0.25rem;
+}
+.character-count.warning {
+  color: #e2bf86;
+  font-weight: 600;
+}
+.guestbook-status {
+  padding: 0.75rem;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  display: none;
+  margin-top: 0.5rem;
+}
+.guestbook-status--success {
+  display: block;
+  background: rgba(46, 160, 67, 0.15);
+  color: #4caf50;
+  border: 1px solid rgba(76, 175, 80, 0.3);
+}
+.guestbook-status--error {
+  display: block;
+  background: rgba(244, 67, 54, 0.15);
+  color: #f44336;
+  border: 1px solid rgba(244, 67, 54, 0.3);
+}
+.guestbook-status--info {
+  display: block;
+  background: rgba(33, 150, 243, 0.15);
+  color: #2196f3;
+  border: 1px solid rgba(33, 150, 243, 0.3);
+}
+/* Keep legacy class names for backwards compatibility */
+.guestbook-status.success {
+  display: block;
+  background: rgba(46, 160, 67, 0.15);
+  color: #4caf50;
+  border: 1px solid rgba(76, 175, 80, 0.3);
+}
+.guestbook-status.error {
+  display: block;
+  background: rgba(244, 67, 54, 0.15);
+  color: #f44336;
+  border: 1px solid rgba(244, 67, 54, 0.3);
+}
 .entry-list { list-style: none; padding: 0; margin: 0; display: grid; gap: .7rem; }
 .entry-list li { padding: .8rem; }
 .entry-list p { margin: .25rem 0 0; color: var(--muted); }

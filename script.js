@@ -798,6 +798,215 @@ const renderSchema = () => {
   schemaNode.textContent = JSON.stringify(schema);
 };
 
+const RATE_LIMIT_KEY = 'guestbook-rate-limit';
+const RATE_LIMIT_MAX = 3; // Max submissions per hour
+const RATE_LIMIT_WINDOW = 60 * 60 * 1000; // 1 hour in milliseconds
+
+/**
+ * Escape HTML to prevent XSS attacks
+ * @param {string} unsafe - Untrusted user input
+ * @returns {string} - HTML-escaped string safe for display
+ */
+const escapeHtml = (unsafe) => {
+  if (typeof unsafe !== 'string') return '';
+  return unsafe
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+};
+
+/**
+ * Format date for display
+ * @param {string} isoDate - ISO date string
+ * @returns {string} - Formatted date string
+ */
+const formatDate = (isoDate) => {
+  try {
+    const date = new Date(isoDate);
+    return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+  } catch {
+    return '';
+  }
+};
+
+/**
+ * Check if user has exceeded rate limit
+ * @returns {boolean} - True if rate limit exceeded
+ */
+const checkRateLimit = () => {
+  try {
+    const stored = localStorage.getItem(RATE_LIMIT_KEY);
+    if (!stored) return false;
+
+    const timestamps = JSON.parse(stored);
+    const now = Date.now();
+
+    // Filter out timestamps older than 1 hour
+    const recentSubmissions = timestamps.filter(ts => now - ts < RATE_LIMIT_WINDOW);
+
+    // Update storage with only recent submissions
+    localStorage.setItem(RATE_LIMIT_KEY, JSON.stringify(recentSubmissions));
+
+    // Check if exceeded limit
+    return recentSubmissions.length >= RATE_LIMIT_MAX;
+  } catch {
+    return false;
+  }
+};
+
+/**
+ * Record a submission timestamp for rate limiting
+ */
+const recordSubmission = () => {
+  try {
+    const stored = localStorage.getItem(RATE_LIMIT_KEY);
+    const timestamps = stored ? JSON.parse(stored) : [];
+    timestamps.push(Date.now());
+    localStorage.setItem(RATE_LIMIT_KEY, JSON.stringify(timestamps));
+  } catch (error) {
+    console.error('Error recording submission:', error);
+  }
+};
+
+/**
+ * Load approved guestbook entries from Supabase
+ * @returns {Array} - Array of approved guestbook entries
+ */
+const loadGuestbookEntries = async () => {
+  if (!isSupabaseReady()) {
+    console.warn('Supabase not ready, cannot load guestbook entries');
+    return [];
+  }
+
+  try {
+    const { data: entries, error } = await SUPABASE
+      .from('guestbook_entries')
+      .select('id, name, club, message, created_at')
+      .eq('status', 'approved')
+      .order('created_at', { ascending: false })
+      .limit(20);
+
+    if (error) {
+      console.error('Error loading guestbook entries:', error);
+      return [];
+    }
+
+    return entries || [];
+  } catch (error) {
+    console.error('Error loading guestbook entries:', error);
+    return [];
+  }
+};
+
+/**
+ * Submit a new guestbook entry to Supabase
+ * @param {Object} entry - Entry object with name, club, message
+ * @returns {boolean} - True if submission successful
+ */
+const submitGuestbookEntry = async (entry) => {
+  if (!isSupabaseReady()) {
+    console.error('Supabase not ready, cannot submit entry');
+    return false;
+  }
+
+  try {
+    const { data, error } = await SUPABASE
+      .from('guestbook_entries')
+      .insert({
+        name: entry.name,
+        club: entry.club,
+        message: entry.message,
+        status: 'pending', // All new entries require admin approval
+      });
+
+    if (error) {
+      console.error('Error submitting guestbook entry:', error);
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    console.error('Error submitting guestbook entry:', error);
+    return false;
+  }
+};
+
+/**
+ * Render guestbook entries to the page
+ * @param {Array} entries - Array of guestbook entries
+ */
+const renderGuestbookEntries = (entries) => {
+  const list = getById('guestbook-list');
+  if (!list) return;
+
+  if (!entries || entries.length === 0) {
+    list.innerHTML = '<li><strong>No approved entries yet.</strong><p>Be the first to sign the book.</p></li>';
+    return;
+  }
+
+  list.innerHTML = entries
+    .map((entry) => {
+      const name = escapeHtml(entry.name);
+      const club = escapeHtml(entry.club);
+      const message = escapeHtml(entry.message);
+      const date = entry.created_at ? formatDate(entry.created_at) : '';
+
+      return `<li class="anim-rise">
+        <strong>${name}</strong> · ${club}${date ? ` · ${date}` : ''}
+        <p>${message}</p>
+      </li>`;
+    })
+    .join('');
+};
+
+/**
+ * Initialize character counter for guestbook message textarea
+ */
+const initMessageCounter = () => {
+  const textarea = getById('guestbook-message');
+  const charCount = getById('char-count');
+
+  if (!textarea || !charCount) return;
+
+  const updateCount = () => {
+    const length = textarea.value.length;
+    charCount.textContent = length;
+
+    // Visual feedback when approaching limit
+    if (length > 350) {
+      charCount.style.color = '#d32f2f'; // Red
+    } else if (length > 300) {
+      charCount.style.color = '#f57c00'; // Orange
+    } else {
+      charCount.style.color = ''; // Default
+    }
+  };
+
+  textarea.addEventListener('input', updateCount);
+  updateCount(); // Initialize count
+};
+
+/**
+ * Show status message to user
+ * @param {string} message - Message to display
+ * @param {string} type - Message type ('success', 'error', 'info')
+ */
+const showGuestbookStatus = (message, type = 'info') => {
+  const statusDiv = getById('guestbook-status');
+  if (!statusDiv) return;
+
+  statusDiv.textContent = message;
+  statusDiv.className = `guestbook-status guestbook-status--${type}`;
+  statusDiv.style.display = 'block';
+
+  // Auto-hide after 5 seconds
+  setTimeout(() => {
+    statusDiv.style.display = 'none';
+  }, 5000);
+};
+
 const readFallbackEntries = () => {
   try {
     return JSON.parse(localStorage.getItem(GUESTBOOK_KEY) || '[]');
@@ -836,6 +1045,14 @@ const renderEntries = (entries) => {
 };
 
 const refreshEntries = async () => {
+  // Use new Supabase-powered function
+  const entries = await loadGuestbookEntries();
+  if (entries && entries.length > 0) {
+    renderGuestbookEntries(entries);
+    return;
+  }
+
+  // Fallback to old system if Supabase fails
   const remote = await fetchApprovedEntries();
   if (remote) {
     renderEntries(remote.filter((e) => e && e.name && e.club && e.message));
@@ -869,12 +1086,21 @@ const bindGuestbook = () => {
   const form = getById('guestbook-form');
   if (!form) return;
 
+  // Initialize character counter
+  initMessageCounter();
+
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
 
     // Check consent before submitting
     if (typeof hasConsent === 'function' && !hasConsent('essential')) {
-      alert('Please accept cookies to use this feature. The cookie consent banner will appear if you refresh the page.');
+      showGuestbookStatus('Please accept cookies to use this feature. Refresh the page to see the consent banner.', 'error');
+      return;
+    }
+
+    // Check rate limit
+    if (checkRateLimit()) {
+      showGuestbookStatus('Rate limit exceeded. You can submit up to 3 entries per hour. Please try again later.', 'error');
       return;
     }
 
@@ -883,24 +1109,60 @@ const bindGuestbook = () => {
       name: String(fd.get('name') || '').trim(),
       club: String(fd.get('club') || '').trim(),
       message: String(fd.get('message') || '').trim(),
-      createdAt: new Date().toISOString(),
-      approved: false,
     };
 
-    if (!entry.name || !entry.club || !entry.message) return;
-
-    const remoteOk = await submitRemoteEntry(entry);
-    if (remoteOk) {
-      alert('Thanks! Your entry is submitted for admin approval and will appear after approval.');
-    } else {
-      const fallback = readFallbackEntries();
-      fallback.push(entry);
-      writeFallbackEntries(fallback);
-      mailToAdmin(entry);
-      alert('Your entry has been saved and an email has been prepared for the admin to approve or deny it.');
+    // Validate (extra safety - HTML5 validation should catch this)
+    if (!entry.name || !entry.club || !entry.message) {
+      showGuestbookStatus('Please fill in all fields.', 'error');
+      return;
     }
 
-    event.currentTarget.reset();
+    // Disable submit button to prevent double submission
+    const submitBtn = form.querySelector('button[type="submit"]');
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Submitting...';
+    }
+
+    // Try Supabase first
+    const success = await submitGuestbookEntry(entry);
+
+    if (success) {
+      showGuestbookStatus('Thank you! Your entry has been submitted and is awaiting approval.', 'success');
+      recordSubmission();
+      event.currentTarget.reset();
+      initMessageCounter(); // Reset counter
+
+      // Re-enable submit button
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Sign the Book';
+      }
+    } else {
+      // Fallback to old system
+      const fallback = readFallbackEntries();
+      fallback.push({
+        ...entry,
+        createdAt: new Date().toISOString(),
+        approved: false,
+      });
+      writeFallbackEntries(fallback);
+      mailToAdmin({
+        ...entry,
+        createdAt: new Date().toISOString(),
+      });
+      showGuestbookStatus('Your entry has been saved and sent for approval via email.', 'info');
+      event.currentTarget.reset();
+      initMessageCounter(); // Reset counter
+
+      // Re-enable submit button
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Sign the Book';
+      }
+    }
+
+    // Refresh entries list
     await refreshEntries();
   });
 };
