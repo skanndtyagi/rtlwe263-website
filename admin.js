@@ -448,10 +448,13 @@ const writeApprovedEntries = (entries) => {
   localStorage.setItem(GUESTBOOK_APPROVED_KEY, JSON.stringify(entries));
 };
 
-const renderPendingEntries = () => {
+const renderPendingEntries = async () => {
   const list = adminGet('pending-entries');
   if (!list) return;
-  const pending = readFallbackEntries();
+
+  // Load from Supabase or fallback to localStorage
+  const pending = await loadPendingEntries();
+
   const badge = adminGet('pending-count');
   if (badge) badge.textContent = pending.length ? String(pending.length) : '';
   if (!pending.length) {
@@ -463,23 +466,27 @@ const renderPendingEntries = () => {
       const name = esc(entry.name || 'Anonymous');
       const club = esc(entry.club || 'Unknown');
       const message = esc(entry.message || '');
+      const entryId = entry.id || '';
       return `
         <article class="admin-entry-card">
           <div class="admin-entry-meta"><strong>${name}</strong><span class="muted">${club}</span></div>
           <p>${message}</p>
           <div class="admin-entry-actions">
-            <button class="btn btn-primary" data-action="approve" data-index="${idx}">Approve</button>
-            <button class="btn btn-secondary" data-action="delete" data-index="${idx}">Delete</button>
+            <button class="btn btn-primary" data-action="approve" data-id="${entryId}" data-index="${idx}">Approve</button>
+            <button class="btn btn-secondary" data-action="reject" data-id="${entryId}" data-index="${idx}">Delete</button>
           </div>
         </article>`;
     })
     .join('');
 };
 
-const renderApprovedEntries = () => {
+const renderApprovedEntries = async () => {
   const list = adminGet('approved-entries');
   if (!list) return;
-  const approved = readApprovedEntries();
+
+  // Load from Supabase or fallback to localStorage
+  const approved = await loadApprovedEntries();
+
   if (!approved.length) {
     list.innerHTML = '<p class="muted">No approved entries yet.</p>';
     return;
@@ -736,28 +743,8 @@ const withSaveFeedback = (btnId, saveFn) => async () => {
   }, 2200);
 };
 
-const approveEntry = (index) => {
-  const pending = readFallbackEntries();
-  const approved = readApprovedEntries();
-  if (!pending[index]) return;
-  approved.push({ ...pending[index], approvedAt: new Date().toISOString(), approved: true });
-  pending.splice(index, 1);
-  writeApprovedEntries(approved);
-  writeFallbackEntries(pending);
-  renderPendingEntries();
-  renderApprovedEntries();
-  refreshEntries();
-  showAdminMessage('Entry approved locally.');
-};
-
-const deleteEntry = (index) => {
-  const pending = readFallbackEntries();
-  if (!pending[index]) return;
-  pending.splice(index, 1);
-  writeFallbackEntries(pending);
-  renderPendingEntries();
-  showAdminMessage('Entry deleted.');
-};
+// approveEntry and rejectEntry are defined in admin-guestbook-module.js
+// No need to duplicate them here
 
 const loadAdminState = async () => {
   // Load hero text from site_settings
@@ -1430,11 +1417,17 @@ const saveSiteSetting = async (key, value) => {
 };
 
 const initAdmin = async () => {
-  await requireAuth();
-  await loadAdminState(); // Now async to load tablers from Supabase
-  renderGalleryAdmin(); // async — updates DOM when Supabase responds
-  await loadGuestbookDashboard(); // Load guestbook with real-time updates
-  bindAdminEvents();
+  try {
+    await requireAuth();
+    await loadAdminState(); // Now async to load tablers from Supabase
+    renderGalleryAdmin(); // async — updates DOM when Supabase responds
+    await loadGuestbookDashboard(); // Load guestbook with real-time updates
+    bindAdminEvents();
+    console.log('[admin] Initialization complete');
+  } catch (error) {
+    console.error('[admin] Initialization error:', error);
+    showAdminMessage('Failed to initialize admin panel. Check console for errors.', 'notice');
+  }
 };
 
 initAdmin();
