@@ -1,10 +1,13 @@
-const ADMIN_AUTH_KEY = 'lwe623-admin-auth';
 const ADMIN_EMAIL = 'london.westend@roundtable.org.uk';
-const ADMIN_PASSWORD = 'Marchesi623';
 const adminLoginForm = document.getElementById('admin-login-form');
 const loginStatus = document.getElementById('login-status');
 
-const setStatus = (message, type = 'info') => {
+/**
+ * Display a status message to the user
+ * @param {string} message - The message to display
+ * @param {'info'|'success'|'error'} type - Message type for styling
+ */
+const showLoginError = (message, type = 'error') => {
   if (!loginStatus) return;
   loginStatus.textContent = message;
   loginStatus.style.display = 'block';
@@ -13,96 +16,90 @@ const setStatus = (message, type = 'info') => {
   loginStatus.style.borderLeft = `3px solid ${type === 'error' ? '#dc2626' : type === 'success' ? '#22c55e' : '#60a5fa'}`;
 };
 
-const setAuthorized = () => localStorage.setItem(ADMIN_AUTH_KEY, '1');
-const isLocalAuthorized = () => localStorage.getItem(ADMIN_AUTH_KEY) === '1';
-const redirectToAdmin = () => (window.location.href = 'admin.html');
+/**
+ * Check if user already has an active Supabase session and redirect to dashboard
+ */
+const checkExistingSession = async () => {
+  if (!isSupabaseReady()) {
+    showLoginError('⚠ Supabase is not configured. Please check your configuration.', 'error');
+    return;
+  }
 
-const hasSupabaseSession = async () => {
-  if (!isSupabaseReady()) return false;
-  const { data, error } = await SUPABASE.auth.getSession();
-  return !error && !!data?.session;
-};
+  const { data: { session }, error } = await SUPABASE.auth.getSession();
 
-const ensureLoggedIn = async () => {
-  if (isLocalAuthorized() || (await hasSupabaseSession())) {
-    redirectToAdmin();
+  if (error) {
+    console.error('[admin-login] Error checking session:', error.message);
+    return;
+  }
+
+  if (session) {
+    console.log('[admin-login] Active session found, redirecting to dashboard');
+    window.location.href = 'admin.html';
   }
 };
 
-// Check initial state
+/**
+ * Handle admin login form submission
+ * @param {string} email - Admin email address
+ * @param {string} password - Admin password
+ */
+const handleAdminLogin = async (email, password) => {
+  if (!isSupabaseReady()) {
+    showLoginError('⚠ Supabase is not configured. Please check your configuration.', 'error');
+    return;
+  }
+
+  showLoginError('Signing in...', 'info');
+
+  const { data, error } = await SUPABASE.auth.signInWithPassword({
+    email,
+    password
+  });
+
+  if (error) {
+    console.error('[admin-login] Authentication failed:', error.message);
+    showLoginError('✗ ' + error.message, 'error');
+    return;
+  }
+
+  if (data?.session) {
+    console.log('[admin-login] Authentication successful');
+    showLoginError('✓ Login successful! Redirecting...', 'success');
+    window.location.href = 'admin.html';
+  }
+};
+
+// Check for existing session on page load
 (async () => {
   // Give scripts a moment to load
   await new Promise(r => setTimeout(r, 500));
-  
-  console.log('[admin-login-init] Starting initial check');
-  console.log('[admin-login-init] window.supabase:', typeof window.supabase);
-  console.log('[admin-login-init] SUPABASE_URL:', typeof SUPABASE_URL !== 'undefined' ? 'OK' : 'MISSING');
-  console.log('[admin-login-init] SUPABASE_ANON_KEY:', typeof SUPABASE_ANON_KEY !== 'undefined' ? (SUPABASE_ANON_KEY === 'your-anon-publishable-key-here' ? 'PLACEHOLDER' : 'OK') : 'MISSING');
-  console.log('[admin-login-init] isSupabaseReady():', isSupabaseReady());
-  
-  if (typeof SUPABASE_ANON_KEY !== 'undefined' && SUPABASE_ANON_KEY === 'your-anon-publishable-key-here') {
-    setStatus('⚠ Supabase config not set up. Using local auth only. Replace "your-anon-publishable-key-here" in supabase-config.js with your anon key.', 'error');
-  } else if (!isSupabaseReady()) {
-    setStatus('⚠ Supabase failed to initialize. Using local auth only.', 'error');
+
+  console.log('[admin-login] Initializing admin login');
+  console.log('[admin-login] Supabase ready:', isSupabaseReady());
+
+  await checkExistingSession();
+
+  // Hide status message if no error shown
+  if (loginStatus && loginStatus.style.display === 'block' && loginStatus.textContent.includes('⚠')) {
+    // Keep error visible
+  } else if (loginStatus) {
+    loginStatus.style.display = 'none';
   }
-  
-  if (isLocalAuthorized() || (await hasSupabaseSession())) {
-    redirectToAdmin();
-  }
-  loginStatus.style.display = 'none';
 })();
 
+// Bind form submission handler
 if (adminLoginForm) {
   adminLoginForm.addEventListener('submit', async (event) => {
     event.preventDefault();
-    const password = document.getElementById('admin-password')?.value?.trim();
+
+    const passwordInput = document.getElementById('admin-password');
+    const password = passwordInput?.value?.trim();
+
     if (!password) {
-      setStatus('Please enter a password.', 'error');
+      showLoginError('Please enter a password.', 'error');
       return;
     }
 
-    console.log('[admin-login] Login attempt with password:', password.substring(0, 3) + '***');
-    console.log('[admin-login] Supabase ready:', isSupabaseReady());
-    setStatus('Checking credentials...', 'info');
-
-    if (isSupabaseReady()) {
-      console.log('[admin-login] Attempting Supabase Auth with email:', ADMIN_EMAIL);
-      setStatus('Signing in with Supabase...', 'info');
-      try {
-        const { data, error } = await SUPABASE.auth.signInWithPassword({
-          email: ADMIN_EMAIL,
-          password,
-        });
-
-        if (error) {
-          console.error('[admin-login] Supabase auth error:', error.message || error);
-          console.log('[admin-login] Supabase signin failed, trying local fallback');
-        } else if (data?.session) {
-          console.log('[admin-login] Supabase auth success!');
-          setStatus('✓ Login successful! Redirecting...', 'success');
-          setAuthorized();
-          return redirectToAdmin();
-        } else {
-          console.warn('[admin-login] Supabase auth succeeded but no session returned');
-        }
-      } catch (err) {
-        console.error('[admin-login] Supabase auth exception:', err.message || err);
-      }
-    } else {
-      console.log('[admin-login] Supabase not ready, using local auth only');
-      setStatus('Using local authentication', 'info');
-    }
-
-    console.log('[admin-login] Trying local password fallback');
-    if (password === ADMIN_PASSWORD) {
-      console.log('[admin-login] Local password matched!');
-      setStatus('✓ Login successful! Redirecting...', 'success');
-      setAuthorized();
-      redirectToAdmin();
-      return;
-    }
-
-    console.error('[admin-login] Password incorrect');
-    setStatus('✗ Incorrect password. Please try again.', 'error');
+    await handleAdminLogin(ADMIN_EMAIL, password);
   });
 }

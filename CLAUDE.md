@@ -264,6 +264,20 @@ CREATE POLICY "Admin delete" ON storage.objects
 
 ## Common Tasks
 
+### Create Admin User (Required for CMS Access)
+
+**IMPORTANT:** Admin users must be created in Supabase Auth dashboard before they can log in.
+
+1. Go to Supabase Dashboard → Authentication → Users
+2. Click "Add User" → "Create new user"
+3. Enter email: `london.westend@roundtable.org.uk`
+4. Enter a secure password (20+ characters recommended)
+5. Enable "Auto Confirm User" (skip email verification)
+6. Click "Create User"
+7. Test login at `/admin-login.html`
+
+**Note:** The admin authentication system uses Supabase Auth. There is no localStorage fallback. If Supabase is not configured or the user doesn't exist in Supabase Auth, login will fail.
+
 ### Add New Database Table
 
 1. Write SQL in `supabase/schema.sql`
@@ -374,6 +388,7 @@ CREATE POLICY "Admin delete" ON storage.objects
 - ✅ Storage buckets created
 - ✅ Design specification written and approved
 - ✅ CLAUDE.md created
+- ✅ Admin authentication with Supabase Auth (Phase 3, Task 7)
 
 **In Progress:**
 - 🔄 Row Level Security policies (currently UNRESTRICTED - security risk!)
@@ -384,7 +399,6 @@ CREATE POLICY "Admin delete" ON storage.objects
 **Not Started:**
 - ⏳ Cookie consent banner
 - ⏳ Privacy policy page
-- ⏳ Admin authentication with Supabase Auth
 - ⏳ Comprehensive testing
 - ⏳ Security hardening
 - ⏳ Hooks setup

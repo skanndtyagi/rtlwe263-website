@@ -1,4 +1,3 @@
-const ADMIN_AUTH_KEY = 'lwe623-admin-auth';
 const GUESTBOOK_APPROVED_KEY = 'lwe623-guestbook-approved';
 
 const adminGet = (id) => document.getElementById(id);
@@ -8,35 +7,55 @@ const adminSafe = (id, event, fn) => {
   el.addEventListener(event, fn);
 };
 
-const getSupabaseSession = async () => {
-  if (!isSupabaseReady()) return null;
-  const { data, error } = await SUPABASE.auth.getSession();
-  if (error) {
-    console.warn('Failed to load Supabase session:', error.message || error);
+/**
+ * Check if user is authenticated with Supabase
+ * Redirects to login page if not authenticated
+ * @returns {Promise<Object|null>} Supabase session object or null
+ */
+const requireAuth = async () => {
+  if (!isSupabaseReady()) {
+    console.error('[admin] Supabase is not configured');
+    window.location.href = 'admin-login.html';
     return null;
   }
-  return data?.session || null;
-};
 
-const isAuthorized = async () => {
-  if (isSupabaseReady()) {
-    const session = await getSupabaseSession();
-    if (session) return true;
-  }
-  return localStorage.getItem(ADMIN_AUTH_KEY) === '1';
-};
+  const { data: { session }, error } = await SUPABASE.auth.getSession();
 
-const requireAuth = async () => {
-  if (!(await isAuthorized())) {
+  if (error) {
+    console.error('[admin] Error checking session:', error.message);
     window.location.href = 'admin-login.html';
+    return null;
   }
+
+  if (!session) {
+    console.log('[admin] No active session, redirecting to login');
+    window.location.href = 'admin-login.html';
+    return null;
+  }
+
+  console.log('[admin] Session valid for user:', session.user.email);
+  return session;
 };
 
-const signOutAdmin = async () => {
-  if (isSupabaseReady()) {
-    await SUPABASE.auth.signOut();
+/**
+ * Sign out the current admin user
+ * Clears Supabase session and redirects to login page
+ */
+const signOut = async () => {
+  if (!isSupabaseReady()) {
+    console.error('[admin] Supabase is not configured');
+    window.location.href = 'admin-login.html';
+    return;
   }
-  localStorage.removeItem(ADMIN_AUTH_KEY);
+
+  const { error } = await SUPABASE.auth.signOut();
+
+  if (error) {
+    console.error('[admin] Error signing out:', error.message);
+  }
+
+  console.log('[admin] User signed out');
+  window.location.href = 'admin-login.html';
 };
 
 const switchPanel = (targetId) => {
@@ -424,8 +443,7 @@ const bindAdminEvents = () => {
 
   // Logout
   adminSafe('admin-logout', 'click', async () => {
-    await signOutAdmin();
-    window.location.href = 'admin-login.html';
+    await signOut();
   });
 
   // Guestbook moderation
