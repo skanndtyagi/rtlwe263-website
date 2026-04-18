@@ -693,36 +693,44 @@ const saveTablers = async () => {
 };
 
 const saveSettings = async () => {
-  const submitUrl = adminGet('admin-submit-url');
-  const feedUrl = adminGet('admin-feed-url');
-  const adminUrl = adminGet('admin-admin-url');
-  
-  const urlsToSave = {
-    guestbookSubmitUrl: submitUrl?.value.trim() || '',
-    guestbookFeedUrl: feedUrl?.value.trim() || '',
-    adminDashboardUrl: adminUrl?.value.trim() || '',
+  const contactEmail = adminGet('admin-contact-email');
+  const meetingDay = adminGet('admin-meeting-day');
+  const meetingTime = adminGet('admin-meeting-time');
+  const meetingLocation = adminGet('admin-meeting-location');
+  const socialFacebook = adminGet('admin-social-facebook');
+  const socialTwitter = adminGet('admin-social-twitter');
+  const socialInstagram = adminGet('admin-social-instagram');
+  const guestbookEnabled = adminGet('admin-guestbook-enabled');
+
+  const settingsToSave = {
+    contactEmail: contactEmail?.value.trim() || '',
+    meetingDay: meetingDay?.value || '',
+    meetingTime: meetingTime?.value.trim() || '',
+    meetingLocation: meetingLocation?.value.trim() || '',
+    socialMedia: {
+      facebook: socialFacebook?.value.trim() || '',
+      twitter: socialTwitter?.value.trim() || '',
+      instagram: socialInstagram?.value.trim() || '',
+    },
+    guestbookEnabled: guestbookEnabled?.checked ?? true,
   };
-  
+
   if (!isSupabaseReady()) {
     // Fallback to localStorage
-    if (submitUrl) data.integrations.guestbookSubmitUrl = urlsToSave.guestbookSubmitUrl;
-    if (feedUrl) data.integrations.guestbookFeedUrl = urlsToSave.guestbookFeedUrl;
-    if (adminUrl) data.integrations.adminDashboardUrl = urlsToSave.adminDashboardUrl;
+    data.settings = settingsToSave;
     save(data);
     showAdminMessage('Settings saved to localStorage.');
     return;
   }
-  
+
   try {
     // Save to site_settings table
-    await saveSiteSetting('integrations', urlsToSave);
-    
+    await saveSiteSetting('clubSettings', settingsToSave);
+
     // Also update localStorage
-    if (submitUrl) data.integrations.guestbookSubmitUrl = urlsToSave.guestbookSubmitUrl;
-    if (feedUrl) data.integrations.guestbookFeedUrl = urlsToSave.guestbookFeedUrl;
-    if (adminUrl) data.integrations.adminDashboardUrl = urlsToSave.adminDashboardUrl;
+    data.settings = settingsToSave;
     save(data);
-    
+
     showAdminMessage('Settings saved successfully.');
   } catch (err) {
     console.error('[settings] Save exception:', err);
@@ -783,25 +791,49 @@ const loadAdminState = async () => {
   renderTablerEditor(data.tablers);
 
   // Load settings from Supabase
-  const submitUrl = adminGet('admin-submit-url');
-  const feedUrl = adminGet('admin-feed-url');
-  const adminUrl = adminGet('admin-admin-url');
-  
+  const contactEmail = adminGet('admin-contact-email');
+  const meetingDay = adminGet('admin-meeting-day');
+  const meetingTime = adminGet('admin-meeting-time');
+  const meetingLocation = adminGet('admin-meeting-location');
+  const socialFacebook = adminGet('admin-social-facebook');
+  const socialTwitter = adminGet('admin-social-twitter');
+  const socialInstagram = adminGet('admin-social-instagram');
+  const guestbookEnabled = adminGet('admin-guestbook-enabled');
+
   if (isSupabaseReady()) {
-    const integrationsValue = await loadSiteSetting('integrations');
-    if (integrationsValue && typeof integrationsValue === 'object') {
-      if (submitUrl) submitUrl.value = integrationsValue.guestbookSubmitUrl || data.integrations?.guestbookSubmitUrl || '';
-      if (feedUrl) feedUrl.value = integrationsValue.guestbookFeedUrl || data.integrations?.guestbookFeedUrl || '';
-      if (adminUrl) adminUrl.value = integrationsValue.adminDashboardUrl || data.integrations?.adminDashboardUrl || '';
+    const clubSettings = await loadSiteSetting('clubSettings');
+    if (clubSettings && typeof clubSettings === 'object') {
+      if (contactEmail) contactEmail.value = clubSettings.contactEmail || '';
+      if (meetingDay) meetingDay.value = clubSettings.meetingDay || '';
+      if (meetingTime) meetingTime.value = clubSettings.meetingTime || '';
+      if (meetingLocation) meetingLocation.value = clubSettings.meetingLocation || '';
+      if (socialFacebook) socialFacebook.value = clubSettings.socialMedia?.facebook || '';
+      if (socialTwitter) socialTwitter.value = clubSettings.socialMedia?.twitter || '';
+      if (socialInstagram) socialInstagram.value = clubSettings.socialMedia?.instagram || '';
+      if (guestbookEnabled) guestbookEnabled.checked = clubSettings.guestbookEnabled ?? true;
     } else {
-      if (submitUrl) submitUrl.value = data.integrations?.guestbookSubmitUrl || '';
-      if (feedUrl) feedUrl.value = data.integrations?.guestbookFeedUrl || '';
-      if (adminUrl) adminUrl.value = data.integrations?.adminDashboardUrl || '';
+      // Use defaults from localStorage or empty
+      const settings = data.settings || {};
+      if (contactEmail) contactEmail.value = settings.contactEmail || '';
+      if (meetingDay) meetingDay.value = settings.meetingDay || '';
+      if (meetingTime) meetingTime.value = settings.meetingTime || '';
+      if (meetingLocation) meetingLocation.value = settings.meetingLocation || '';
+      if (socialFacebook) socialFacebook.value = settings.socialMedia?.facebook || '';
+      if (socialTwitter) socialTwitter.value = settings.socialMedia?.twitter || '';
+      if (socialInstagram) socialInstagram.value = settings.socialMedia?.instagram || '';
+      if (guestbookEnabled) guestbookEnabled.checked = settings.guestbookEnabled ?? true;
     }
   } else {
-    if (submitUrl) submitUrl.value = data.integrations?.guestbookSubmitUrl || '';
-    if (feedUrl) feedUrl.value = data.integrations?.guestbookFeedUrl || '';
-    if (adminUrl) adminUrl.value = data.integrations?.adminDashboardUrl || '';
+    // Fallback to localStorage
+    const settings = data.settings || {};
+    if (contactEmail) contactEmail.value = settings.contactEmail || '';
+    if (meetingDay) meetingDay.value = settings.meetingDay || '';
+    if (meetingTime) meetingTime.value = settings.meetingTime || '';
+    if (meetingLocation) meetingLocation.value = settings.meetingLocation || '';
+    if (socialFacebook) socialFacebook.value = settings.socialMedia?.facebook || '';
+    if (socialTwitter) socialTwitter.value = settings.socialMedia?.twitter || '';
+    if (socialInstagram) socialInstagram.value = settings.socialMedia?.instagram || '';
+    if (guestbookEnabled) guestbookEnabled.checked = settings.guestbookEnabled ?? true;
   }
 };;
 
@@ -852,22 +884,29 @@ const bindAdminEvents = () => {
   const handleTablerDelete = (event) => {
     const row = event.target.closest('.admin-tabler-row');
     if (!row) return;
+
+    const name = row.querySelector('.admin-tabler-name')?.value || 'this member';
+
+    if (!confirm(`Are you sure you want to remove ${name}? This action cannot be undone.`)) {
+      return;
+    }
+
     const id = row.dataset.tablerId;
     if (id && tabulersInEdit[id]) {
       // Soft delete from Supabase
       deleteTabler(id).then(success => {
         if (success) {
           row.remove();
-          showAdminMessage('Tabler will be removed when you save changes.');
+          showAdminMessage(`${name} has been removed.`);
           delete tabulersInEdit[id];
         } else {
-          showAdminMessage('Failed to delete tabler.', 'notice');
+          showAdminMessage('Failed to delete member. Please try again.', 'notice');
         }
       });
     } else {
       // Just remove from UI if new
       row.remove();
-      showAdminMessage('Tabler removed.');
+      showAdminMessage(`${name} removed.`);
     }
   };
 
@@ -878,7 +917,17 @@ const bindAdminEvents = () => {
 
   // Reset
   adminSafe('admin-reset-content', 'click', async () => {
-    if (!confirm('Reset all content to defaults? This cannot be undone.')) return;
+    const confirmText = 'This will permanently delete ALL your content (events, photos, member profiles, etc.) and cannot be undone. Are you absolutely sure?';
+
+    if (!confirm(confirmText)) return;
+
+    // Double confirmation for extra safety
+    const confirmAgain = prompt('Type "RESET" in capital letters to confirm:');
+    if (confirmAgain !== 'RESET') {
+      showAdminMessage('Reset cancelled.', 'notice');
+      return;
+    }
+
     localStorage.removeItem(KEY);
     localStorage.removeItem(GUESTBOOK_KEY);
     localStorage.removeItem(GUESTBOOK_APPROVED_KEY);
@@ -886,7 +935,7 @@ const bindAdminEvents = () => {
     renderAll();
     await loadAdminState();
     await loadGuestbookDashboard();
-    showAdminMessage('Content reset to defaults.');
+    showAdminMessage('⚠️ All content has been reset to defaults.');
   });
 
   // Logout
@@ -1187,12 +1236,23 @@ const handleFileUpload = async (files, album, progressEl, photoGrid) => {
     return;
   }
   const fileArr = Array.from(files);
+
+  // Check file sizes before uploading
+  const largeFiles = fileArr.filter(f => f.size > 5 * 1024 * 1024); // 5MB
+  if (largeFiles.length > 0) {
+    const fileNames = largeFiles.map(f => `${f.name} (${(f.size / 1024 / 1024).toFixed(1)}MB)`).join(', ');
+    if (!confirm(`⚠️ Some files are quite large: ${fileNames}\n\nLarge files may be slow to load for visitors. Continue anyway?`)) {
+      return;
+    }
+  }
+
   progressEl.classList.remove('hidden');
   let dbInserted = 0;
   let firstNewItem = null;
 
   for (let i = 0; i < fileArr.length; i++) {
-    progressEl.textContent = `Compressing & uploading ${i + 1} of ${fileArr.length}…`;
+    const fileSizeMB = (fileArr[i].size / 1024 / 1024).toFixed(1);
+    progressEl.textContent = `Compressing & uploading ${i + 1} of ${fileArr.length}… (${fileSizeMB}MB)`;
     const url = await uploadGalleryFile(fileArr[i], album.event_name);
     if (url) {
       const existingCount = photoGrid.querySelectorAll('.gallery-photo-item').length;
@@ -1255,11 +1315,22 @@ const handleFileUpload = async (files, album, progressEl, photoGrid) => {
 };
 
 const confirmDeleteAlbum = async (album) => {
-  if (!confirm(`Delete the "${album.event_name}" album and all its photos? This cannot be undone.`)) return;
+  const photoCount = album.photos?.length || 0;
+  const warningText = `Are you sure you want to delete "${album.event_name}"?\n\nThis will permanently delete ${photoCount} photo${photoCount !== 1 ? 's' : ''} and cannot be undone.`;
+
+  if (!confirm(warningText)) return;
+
+  // Double confirmation for albums with many photos
+  if (photoCount > 10) {
+    if (!confirm(`⚠️ Last chance! This album has ${photoCount} photos. Delete permanently?`)) {
+      return;
+    }
+  }
+
   if (isSupabaseReady()) {
     await SUPABASE.from('gallery_images').update({ active: false }).eq('event_name', album.event_name);
   }
-  showAdminMessage(`Album "${album.event_name}" deleted.`);
+  showAdminMessage(`Album "${album.event_name}" and ${photoCount} photo${photoCount !== 1 ? 's' : ''} deleted.`);
   await renderGalleryAdmin();
 };
 

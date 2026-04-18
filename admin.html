@@ -61,15 +61,39 @@
           <div class="admin-panel-header">
             <div>
               <h1 class="admin-panel-title">Hero &amp; About</h1>
-              <p class="muted">Manage the homepage hero section and about copy.</p>
+              <p class="muted">This controls the main banner and welcome text visitors see first on your homepage.</p>
             </div>
             <button class="btn btn-primary" id="admin-save-hero">Save Changes</button>
           </div>
+
+          <div class="admin-help-section">
+            <details class="admin-help-collapsible">
+              <summary><span class="help-icon">ℹ️</span> How to use this panel</summary>
+              <div class="admin-help-content">
+                <p><strong>What this does:</strong> Controls what visitors see when they first land on your website.</p>
+                <p><strong>Quick tips:</strong></p>
+                <ul>
+                  <li>Keep your headline short and punchy (under 10 words works best)</li>
+                  <li>Use landscape photos (wider than tall) for hero slides</li>
+                  <li>You can add multiple slides that will rotate automatically</li>
+                </ul>
+              </div>
+            </details>
+          </div>
+
           <div class="admin-card">
             <h3 class="admin-card-title">Hero text</h3>
             <div class="admin-field-group">
-              <label>Page headline<input id="admin-hero-title" maxlength="120" /></label>
-              <label>Subtitle / tagline<textarea id="admin-hero-subtitle" rows="3" maxlength="320"></textarea></label>
+              <label>
+                Page headline
+                <span class="admin-help-text">💡 Tip: Keep it under 10 words for best impact</span>
+                <input id="admin-hero-title" maxlength="120" placeholder="e.g. Welcome to London West End Round Table" />
+              </label>
+              <label>
+                Subtitle / tagline
+                <span class="admin-help-text">A short description of your club (2-3 sentences)</span>
+                <textarea id="admin-hero-subtitle" rows="3" maxlength="320" placeholder="e.g. Fellowship, fun, and community service in the heart of London"></textarea>
+              </label>
             </div>
           </div>
           <div class="admin-card">
@@ -77,12 +101,16 @@
               <h3 class="admin-card-title">Hero slides</h3>
               <button class="btn btn-secondary" id="admin-add-hero-slide">+ Add slide</button>
             </div>
-            <p class="muted" style="margin-bottom:1rem">Each slide is shown as a rotating background image. Paste a public image URL from Supabase Storage, Cloudinary, or any CDN. Add an optional caption.</p>
+            <p class="admin-help-text">📸 Add photos that will rotate on your homepage banner. Use landscape images (wider than tall) for best results.</p>
             <div id="admin-hero-slide-list" class="admin-image-rows"></div>
           </div>
           <div class="admin-card">
             <h3 class="admin-card-title">About section</h3>
-            <label>About copy<textarea id="admin-about" rows="6" maxlength="600"></textarea></label>
+            <label>
+              About copy
+              <span class="admin-help-text">Introduce your club to visitors. What makes you unique?</span>
+              <textarea id="admin-about" rows="6" maxlength="600" placeholder="Tell visitors about your club's history, values, and what makes you special..."></textarea>
+            </label>
           </div>
         </div>
 
@@ -91,15 +119,46 @@
           <div class="admin-panel-header">
             <div>
               <h1 class="admin-panel-title">Gallery</h1>
-              <p class="muted">Organise photos into event albums. Uploads go live on the site immediately.</p>
+              <p class="muted">Upload photos from your events here. They'll appear in the photo gallery section of your website.</p>
             </div>
             <button class="btn btn-primary" id="admin-create-album">+ New Album</button>
           </div>
+
+          <div class="admin-help-section">
+            <details class="admin-help-collapsible">
+              <summary><span class="help-icon">ℹ️</span> How to use this panel</summary>
+              <div class="admin-help-content">
+                <p><strong>What this does:</strong> Manages photo albums that appear on your website's Gallery page.</p>
+                <p><strong>Step by step:</strong></p>
+                <ol>
+                  <li>Click "+ New Album" to create an album for an event</li>
+                  <li>Give it a name (e.g. "Summer Social 2026")</li>
+                  <li>Click "Manage photos" to upload images</li>
+                  <li>Drag photos or click Browse to select files</li>
+                  <li>Add captions to describe each photo</li>
+                </ol>
+                <p><strong>💡 Tips:</strong></p>
+                <ul>
+                  <li>Use landscape photos (wider than tall) for best results</li>
+                  <li>Keep file sizes under 5MB (large files are slow to load)</li>
+                  <li>Add descriptive captions so visitors know what they're looking at</li>
+                </ul>
+              </div>
+            </details>
+          </div>
+
           <div class="admin-card" id="admin-new-album-form" style="display:none">
             <h3 class="admin-card-title">Create new album</h3>
             <div class="admin-field-group admin-field-group-inline">
-              <label>Album / Event name<input id="new-album-name" placeholder="e.g. AGM Night 2026" /></label>
-              <label>Event date (optional)<input id="new-album-date" type="date" /></label>
+              <label>
+                Album / Event name
+                <input id="new-album-name" placeholder="e.g. AGM Night 2026" />
+              </label>
+              <label>
+                Event date (optional)
+                <span class="admin-help-text">Helps visitors find photos by date</span>
+                <input id="new-album-date" type="date" />
+              </label>
             </div>
             <div style="display:flex;gap:.6rem;margin-top:.4rem">
               <button class="btn btn-primary" id="admin-confirm-album">Create Album</button>
@@ -116,13 +175,36 @@
           <div class="admin-panel-header">
             <div>
               <h1 class="admin-panel-title">Programme</h1>
-              <p class="muted">Manage events for the 2026–2027 programme year.</p>
+              <p class="muted">Add upcoming events to your calendar. These show on the homepage so members know what's coming up.</p>
             </div>
             <div style="display:flex;gap:.6rem;align-items:center">
               <button class="btn btn-secondary" id="admin-add-event">+ Add event</button>
               <button class="btn btn-primary" id="admin-save-events">Save Changes</button>
             </div>
           </div>
+
+          <div class="admin-help-section">
+            <details class="admin-help-collapsible">
+              <summary><span class="help-icon">ℹ️</span> How to use this panel</summary>
+              <div class="admin-help-content">
+                <p><strong>What this does:</strong> Manages your club's event calendar shown on the homepage.</p>
+                <p><strong>Step by step:</strong></p>
+                <ol>
+                  <li>Click "+ Add event" to create a new event</li>
+                  <li>Fill in the date, time, location, and event details</li>
+                  <li>Add a contact person so members know who to ask</li>
+                  <li>Click "Save Changes" to publish to your website</li>
+                </ol>
+                <p><strong>💡 Tips:</strong></p>
+                <ul>
+                  <li>Events are shown in date order automatically</li>
+                  <li>Past events won't show on the homepage (they auto-hide)</li>
+                  <li>Include full location details (venue name + address)</li>
+                </ul>
+              </div>
+            </details>
+          </div>
+
           <div id="admin-event-list" class="admin-event-list"></div>
         </div>
 
@@ -131,13 +213,37 @@
           <div class="admin-panel-header">
             <div>
               <h1 class="admin-panel-title">Tablers</h1>
-              <p class="muted">Manage member profiles shown on the homepage.</p>
+              <p class="muted">Manage member profiles that appear on the "Meet the Team" page of your website.</p>
             </div>
             <div style="display:flex;gap:.6rem;align-items:center">
               <button class="btn btn-secondary" id="admin-add-tabler">+ Add tabler</button>
               <button class="btn btn-primary" id="admin-save-tablers">Save Changes</button>
             </div>
           </div>
+
+          <div class="admin-help-section">
+            <details class="admin-help-collapsible">
+              <summary><span class="help-icon">ℹ️</span> How to use this panel</summary>
+              <div class="admin-help-content">
+                <p><strong>What this does:</strong> Creates and updates member profiles on your website.</p>
+                <p><strong>Step by step:</strong></p>
+                <ol>
+                  <li>Click "+ Add tabler" to add a new member</li>
+                  <li>Enter their name and role (e.g. "Chairman", "Secretary")</li>
+                  <li>Upload a photo or paste a photo URL</li>
+                  <li>Write a short bio (2-3 sentences)</li>
+                  <li>Click "Save Changes" to publish</li>
+                </ol>
+                <p><strong>💡 Tips:</strong></p>
+                <ul>
+                  <li>Professional headshots work best (square photos)</li>
+                  <li>Keep bios friendly and approachable</li>
+                  <li>Include what the person does for the club</li>
+                </ul>
+              </div>
+            </details>
+          </div>
+
           <div id="admin-tabler-list" class="admin-tabler-list"></div>
         </div>
 
@@ -146,16 +252,46 @@
           <div class="admin-panel-header">
             <div>
               <h1 class="admin-panel-title">Guestbook</h1>
-              <p class="muted">Moderate visiting book entries from members and clubs.</p>
+              <p class="muted">Review and approve messages from visiting Tablers before they appear on your website.</p>
             </div>
           </div>
+
+          <div class="admin-help-section">
+            <details class="admin-help-collapsible">
+              <summary><span class="help-icon">ℹ️</span> How to use this panel</summary>
+              <div class="admin-help-content">
+                <p><strong>What this does:</strong> Lets you moderate guestbook entries before they go live.</p>
+                <p><strong>Step by step:</strong></p>
+                <ol>
+                  <li>New entries appear in the "Pending" column</li>
+                  <li>Read the message to check it's appropriate</li>
+                  <li>Click "Approve" to publish it on your website</li>
+                  <li>Click "Delete" to remove spam or inappropriate messages</li>
+                </ol>
+                <p><strong>💡 Tips:</strong></p>
+                <ul>
+                  <li>You'll see a badge showing how many entries need review</li>
+                  <li>Approved entries appear on your public guestbook page immediately</li>
+                  <li>You can approve multiple entries at once if they're all good</li>
+                </ul>
+              </div>
+            </details>
+          </div>
+
           <div class="admin-cols">
             <div class="admin-card">
-              <h3 class="admin-card-title">Pending <span class="admin-badge" id="pending-count"></span></h3>
+              <h3 class="admin-card-title">
+                Pending
+                <span class="admin-badge" id="pending-count"></span>
+                <span class="admin-help-text" style="display:block;margin-top:0.5rem;font-weight:normal">⚠️ These entries need your review before going live</span>
+              </h3>
               <div id="pending-entries"><p class="muted">No pending entries.</p></div>
             </div>
             <div class="admin-card">
-              <h3 class="admin-card-title">Approved</h3>
+              <h3 class="admin-card-title">
+                Approved
+                <span class="admin-help-text" style="display:block;margin-top:0.5rem;font-weight:normal">✅ These entries are live on your website</span>
+              </h3>
               <div id="approved-entries"><p class="muted">No approved entries yet.</p></div>
             </div>
           </div>
@@ -166,21 +302,99 @@
           <div class="admin-panel-header">
             <div>
               <h1 class="admin-panel-title">Settings</h1>
-              <p class="muted">Integration URLs and advanced configuration.</p>
+              <p class="muted">Manage your club's contact information and website settings.</p>
             </div>
             <button class="btn btn-primary" id="admin-save-settings">Save Settings</button>
           </div>
+
+          <div class="admin-help-section">
+            <details class="admin-help-collapsible">
+              <summary><span class="help-icon">ℹ️</span> How to use this panel</summary>
+              <div class="admin-help-content">
+                <p><strong>What this does:</strong> Controls your club's contact details and basic settings.</p>
+                <p><strong>Step by step:</strong></p>
+                <ol>
+                  <li>Fill in your club's contact email</li>
+                  <li>Set your meeting day and time</li>
+                  <li>Add your meeting venue details</li>
+                  <li>Optionally add social media links</li>
+                  <li>Click "Save Settings" to update your website</li>
+                </ol>
+              </div>
+            </details>
+          </div>
+
           <div class="admin-card">
-            <h3 class="admin-card-title">Integrations</h3>
+            <h3 class="admin-card-title">Contact Information</h3>
+            <p class="admin-help-text">This information appears on your website's contact page.</p>
             <div class="admin-field-group">
-              <label>Guestbook submit URL<input id="admin-submit-url" placeholder="https://..." /></label>
-              <label>Guestbook approved feed URL<input id="admin-feed-url" placeholder="https://..." /></label>
-              <label>Admin dashboard URL<input id="admin-admin-url" placeholder="https://..." /></label>
+              <label>
+                Club contact email
+                <span class="admin-help-text">Where visitors can reach you (e.g. london.westend@roundtable.org.uk)</span>
+                <input id="admin-contact-email" type="email" placeholder="london.westend@roundtable.org.uk" />
+              </label>
+              <div class="admin-field-group-inline">
+                <label>
+                  Meeting day
+                  <span class="admin-help-text">Which day do you meet?</span>
+                  <select id="admin-meeting-day">
+                    <option value="">Select a day...</option>
+                    <option value="Monday">Monday</option>
+                    <option value="Tuesday">Tuesday</option>
+                    <option value="Wednesday">Wednesday</option>
+                    <option value="Thursday">Thursday</option>
+                    <option value="Friday">Friday</option>
+                    <option value="Saturday">Saturday</option>
+                    <option value="Sunday">Sunday</option>
+                  </select>
+                </label>
+                <label>
+                  Meeting time
+                  <span class="admin-help-text">What time? (e.g. 7:30 PM)</span>
+                  <input id="admin-meeting-time" placeholder="e.g. 7:30 PM" />
+                </label>
+              </div>
+              <label>
+                Meeting location/venue
+                <span class="admin-help-text">Where do you meet? Include venue name and area</span>
+                <input id="admin-meeting-location" placeholder="e.g. The Crown Pub, Soho" />
+              </label>
             </div>
           </div>
+
+          <div class="admin-card">
+            <h3 class="admin-card-title">Social Media (Optional)</h3>
+            <p class="admin-help-text">Add links to your club's social media profiles. Leave blank if you don't use them.</p>
+            <div class="admin-field-group">
+              <label>
+                Facebook
+                <input id="admin-social-facebook" type="url" placeholder="https://facebook.com/yourclub" />
+              </label>
+              <label>
+                Twitter/X
+                <input id="admin-social-twitter" type="url" placeholder="https://twitter.com/yourclub" />
+              </label>
+              <label>
+                Instagram
+                <input id="admin-social-instagram" type="url" placeholder="https://instagram.com/yourclub" />
+              </label>
+            </div>
+          </div>
+
+          <div class="admin-card">
+            <h3 class="admin-card-title">Guestbook</h3>
+            <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1rem">
+              <label style="display:flex;align-items:center;gap:0.5rem;margin:0">
+                <input type="checkbox" id="admin-guestbook-enabled" style="width:auto;margin:0" />
+                <span>Enable guestbook on website</span>
+              </label>
+              <span class="admin-help-text">Turn this off to hide the guestbook from visitors</span>
+            </div>
+          </div>
+
           <div class="admin-card" style="border-color:rgba(220,50,50,0.3)">
-            <h3 class="admin-card-title">Danger zone</h3>
-            <p class="muted">Reset all site content back to the default placeholder data.</p>
+            <h3 class="admin-card-title">⚠️ Danger zone</h3>
+            <p class="muted">Reset all site content back to the default placeholder data. <strong>This cannot be undone!</strong></p>
             <button class="btn btn-secondary" id="admin-reset-content">Reset all content to defaults</button>
           </div>
         </div>

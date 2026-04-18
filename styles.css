@@ -802,6 +802,38 @@ input:focus, textarea:focus, select:focus {
 }
 .admin-panel-title { font-size: 1.55rem; margin-bottom: .15rem; }
 
+.admin-status-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+  padding: 0.35rem 0.7rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  margin-top: 0.5rem;
+}
+
+.admin-status-indicator.published {
+  color: #4ade80;
+  border-color: rgba(74, 222, 128, 0.3);
+  background: rgba(74, 222, 128, 0.08);
+}
+
+.admin-status-indicator.draft {
+  color: #fbbf24;
+  border-color: rgba(251, 191, 36, 0.3);
+  background: rgba(251, 191, 36, 0.08);
+}
+
+.admin-last-updated {
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin-top: 0.35rem;
+  font-style: italic;
+}
+
 .admin-card {
   background: linear-gradient(180deg, #111b2c, #0d1624);
   border: 1px solid var(--line); border-radius: 16px;
@@ -865,6 +897,135 @@ input:focus, textarea:focus, select:focus {
 }
 .admin-message.visible { opacity: 1; max-height: 60px; padding: .7rem 1rem; }
 .admin-message.notice { background: rgba(96,165,250,.12); border: 1px solid rgba(96,165,250,.3); color: #93c5fd; }
+
+/* Admin help sections */
+.admin-help-section {
+  margin-bottom: 1rem;
+}
+
+.admin-help-collapsible {
+  background: rgba(96, 165, 250, 0.08);
+  border: 1px solid rgba(96, 165, 250, 0.2);
+  border-radius: 12px;
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+}
+
+.admin-help-collapsible summary {
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
+  user-select: none;
+}
+
+.admin-help-collapsible summary::-webkit-details-marker {
+  display: none;
+}
+
+.admin-help-collapsible summary::before {
+  content: '▶';
+  display: inline-block;
+  transition: transform 0.2s;
+  color: rgba(96, 165, 250, 0.8);
+}
+
+.admin-help-collapsible[open] summary::before {
+  transform: rotate(90deg);
+}
+
+.help-icon {
+  font-size: 1.1rem;
+  display: inline-block;
+}
+
+.admin-help-content {
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid rgba(96, 165, 250, 0.15);
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.admin-help-content strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.admin-help-content p {
+  margin: 0 0 0.5rem;
+}
+
+.admin-help-content ul,
+.admin-help-content ol {
+  margin: 0.5rem 0;
+  padding-left: 1.5rem;
+}
+
+.admin-help-content li {
+  margin-bottom: 0.35rem;
+}
+
+.admin-help-text {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--muted);
+  font-weight: 400;
+  margin-top: 0.25rem;
+  line-height: 1.4;
+}
+
+.admin-tip {
+  background: rgba(220, 178, 108, 0.08);
+  border-left: 3px solid var(--gold);
+  padding: 0.6rem 0.8rem;
+  margin: 0.75rem 0;
+  border-radius: 6px;
+  font-size: 0.88rem;
+  color: var(--text);
+}
+
+.admin-warning {
+  background: rgba(244, 67, 54, 0.08);
+  border-left: 3px solid rgba(244, 67, 54, 0.6);
+  padding: 0.6rem 0.8rem;
+  margin: 0.75rem 0;
+  border-radius: 6px;
+  font-size: 0.88rem;
+  color: var(--text);
+}
+
+.admin-success {
+  background: rgba(76, 175, 80, 0.08);
+  border-left: 3px solid rgba(76, 175, 80, 0.6);
+  padding: 0.6rem 0.8rem;
+  margin: 0.75rem 0;
+  border-radius: 6px;
+  font-size: 0.88rem;
+  color: var(--text);
+}
+
+/* Select styling */
+select {
+  width: 100%;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  padding: 0.65rem 0.7rem;
+  background: #0d1522;
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+}
+
+select:focus {
+  outline: none;
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px rgba(220, 178, 108, 0.18);
+}
 
 /* Mobile admin */
 @media (max-width: 768px) {
