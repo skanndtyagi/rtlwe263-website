@@ -1,5 +1,9 @@
 const GUESTBOOK_APPROVED_KEY = 'lwe623-guestbook-approved';
 
+// Tablers storage bucket and CRUD state
+const TABLERS_BUCKET = 'site-media';
+let tabulersInEdit = {}; // Track IDs being edited
+
 const adminGet = (id) => document.getElementById(id);
 const adminSafe = (id, event, fn) => {
   const el = adminGet(id);
@@ -121,6 +125,7 @@ const renderImageRows = (containerId, items) => {
 const createTablerRow = (tabler = {}) => {
   const row = document.createElement('div');
   row.className = 'admin-tabler-row admin-card';
+  if (tabler.id) row.dataset.tablerId = tabler.id;
   const photo = tabler.photo || '';
   row.innerHTML = `
     <div class="admin-tabler-row-inner">
@@ -133,7 +138,14 @@ const createTablerRow = (tabler = {}) => {
           <label>Name<input class="admin-tabler-name" value="${esc(tabler.name || '')}" placeholder="Full name" /></label>
           <label>Role / Title<input class="admin-tabler-title" value="${esc(tabler.title || '')}" placeholder="e.g. Chairman" /></label>
         </div>
-        <label>Photo URL<input class="admin-tabler-photo" type="url" placeholder="https://\u2026" value="${esc(photo)}" /></label>
+        <div class="admin-field-group admin-field-group-inline" style="align-items:flex-end">
+          <label>Photo<input class="admin-tabler-photo" type="url" placeholder="https://\u2026" value="${esc(photo)}" style="flex:1" /></label>
+          <label style="display:flex;gap:.4rem;align-items:center;margin:0">
+            <span style="font-size:.85rem;color:var(--muted)">or upload</span>
+            <input type="file" class="admin-tabler-upload" accept="image/*" style="display:none" />
+            <button class="btn btn-secondary admin-tabler-upload-btn" type="button" style="padding:.4rem .8rem;font-size:.85rem">Browse</button>
+          </label>
+        </div>
         <label>Bio<textarea class="admin-tabler-bio" rows="3" placeholder="Short bio\u2026">${esc(tabler.bio || '')}</textarea></label>
       </div>
       <button class="btn btn-secondary admin-tabler-remove" type="button">Remove</button>
@@ -142,12 +154,39 @@ const createTablerRow = (tabler = {}) => {
   const photoInput = row.querySelector('.admin-tabler-photo');
   const img = row.querySelector('.admin-tabler-preview-img');
   const placeholder = row.querySelector('.admin-tabler-preview-placeholder');
+  const uploadInput = row.querySelector('.admin-tabler-upload');
+  const uploadBtn = row.querySelector('.admin-tabler-upload-btn');
+
   photoInput.addEventListener('input', () => {
     const val = photoInput.value.trim();
     img.src = val;
     img.style.display = val ? '' : 'none';
     placeholder.style.display = val ? 'none' : '';
   });
+
+  // Browse button opens file picker
+  uploadBtn.addEventListener('click', () => {
+    uploadInput.click();
+  });
+
+  // Handle file upload
+  uploadInput.addEventListener('change', async () => {
+    const file = uploadInput.files?.[0];
+    if (!file) return;
+    showAdminMessage('Uploading photo...');
+    const url = await uploadTablerPhoto(file);
+    if (url) {
+      photoInput.value = url;
+      img.src = url;
+      img.style.display = '';
+      placeholder.style.display = 'none';
+      showAdminMessage('Photo uploaded successfully.');
+    } else {
+      showAdminMessage('Failed to upload photo.', 'notice');
+    }
+    uploadInput.value = '';
+  });
+
   row.querySelector('.admin-tabler-remove').addEventListener('click', () => row.remove());
   return row;
 };
@@ -155,6 +194,7 @@ const createTablerRow = (tabler = {}) => {
 const collectTablerRows = () =>
   Array.from(document.querySelectorAll('.admin-tabler-row'))
     .map(row => ({
+      id: row.dataset.tablerId || undefined,
       name: row.querySelector('.admin-tabler-name')?.value.trim() || 'Unnamed',
       title: row.querySelector('.admin-tabler-title')?.value.trim() || '',
       photo: row.querySelector('.admin-tabler-photo')?.value.trim() || '',
@@ -168,6 +208,159 @@ const renderTablerEditor = (tablers) => {
   list.innerHTML = '';
   const items = Array.isArray(tablers) && tablers.length ? tablers : [{}];
   items.forEach(t => list.appendChild(createTablerRow(t)));
+};
+
+// ============================================================
+// Tablers CRUD Operations with Supabase
+// ============================================================
+
+/**
+ * Load all active tablers from Supabase
+ * @returns {Promise<Array>} Array of tabler objects
+ */
+const loadTablers = async () => {
+  if (!isSupabaseReady()) {
+    console.warn('[tablers] Supabase not ready, returning empty');
+    return [];
+  }
+  try {
+    const { data: rows, error } = await SUPABASE
+      .from('tablers')
+      .select('*')
+      .eq('active', true)
+      .order('order', { ascending: true });
+    if (error) {
+      console.error('[tablers] Load error:', error.message);
+      return [];
+    }
+    return rows || [];
+  } catch (err) {
+    console.error('[tablers] Load exception:', err);
+    return [];
+  }
+};
+
+/**
+ * Add a new tabler to Supabase
+ * @param {Object} tabler - Tabler data { name, title, bio, photo }
+ * @returns {Promise<Object|null>} Inserted record or null on error
+ */
+const addTabler = async (tabler) => {
+  if (!isSupabaseReady()) {
+    console.error('[tablers] Supabase not ready');
+    return null;
+  }
+  try {
+    const { data: newRecord, error } = await SUPABASE
+      .from('tablers')
+      .insert({
+        name: tabler.name || 'Unnamed Tabler',
+        title: tabler.title || '',
+        bio: tabler.bio || '',
+        photo: tabler.photo || '',
+        active: true,
+        order: Date.now(),
+      })
+      .select()
+      .single();
+    if (error) {
+      console.error('[tablers] Add error:', error.message);
+      return null;
+    }
+    return newRecord;
+  } catch (err) {
+    console.error('[tablers] Add exception:', err);
+    return null;
+  }
+};
+
+/**
+ * Update an existing tabler in Supabase
+ * @param {string} id - Tabler ID
+ * @param {Object} updates - Fields to update
+ * @returns {Promise<Object|null>} Updated record or null on error
+ */
+const updateTabler = async (id, updates) => {
+  if (!isSupabaseReady()) {
+    console.error('[tablers] Supabase not ready');
+    return null;
+  }
+  try {
+    const { data: updated, error } = await SUPABASE
+      .from('tablers')
+      .update(updates)
+      .eq('id', id)
+      .select()
+      .single();
+    if (error) {
+      console.error('[tablers] Update error:', error.message);
+      return null;
+    }
+    return updated;
+  } catch (err) {
+    console.error('[tablers] Update exception:', err);
+    return null;
+  }
+};
+
+/**
+ * Delete a tabler from Supabase (soft delete via active flag)
+ * @param {string} id - Tabler ID
+ * @returns {Promise<boolean>} True if successful
+ */
+const deleteTabler = async (id) => {
+  if (!isSupabaseReady()) {
+    console.error('[tablers] Supabase not ready');
+    return false;
+  }
+  try {
+    const { error } = await SUPABASE
+      .from('tablers')
+      .update({ active: false })
+      .eq('id', id);
+    if (error) {
+      console.error('[tablers] Delete error:', error.message);
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.error('[tablers] Delete exception:', err);
+    return false;
+  }
+};
+
+/**
+ * Upload tabler photo to Supabase Storage
+ * @param {File} file - Image file
+ * @returns {Promise<string|null>} Public URL or null on error
+ */
+const uploadTablerPhoto = async (file) => {
+  if (!isSupabaseReady()) {
+    console.error('[tablers] Supabase not ready');
+    return null;
+  }
+  try {
+    const compressed = await compressImage(file, 500, 0.85); // Profile photo size
+    const path = `tablers/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.jpg`;
+    const { error: uploadError } = await SUPABASE.storage
+      .from(TABLERS_BUCKET)
+      .upload(path, compressed, {
+        cacheControl: '3600',
+        contentType: 'image/jpeg',
+        upsert: false,
+      });
+    if (uploadError) {
+      console.error('[tablers] Upload error:', uploadError.message);
+      return null;
+    }
+    const { data: urlData } = SUPABASE.storage
+      .from(TABLERS_BUCKET)
+      .getPublicUrl(path);
+    return urlData?.publicUrl || null;
+  } catch (err) {
+    console.error('[tablers] Upload exception:', err);
+    return null;
+  }
 };
 
 const createEventRow = (event = {}) => {
@@ -300,51 +493,243 @@ const renderApprovedEntries = () => {
     .join('');
 };
 
-const saveHero = () => {
+
+const saveHero = async () => {
   const heroTitle = adminGet('admin-hero-title');
   const heroSubtitle = adminGet('admin-hero-subtitle');
   const about = adminGet('admin-about');
-  if (heroTitle) data.heroTitle = heroTitle.value.trim() || data.heroTitle;
-  if (heroSubtitle) data.heroSubtitle = heroSubtitle.value.trim() || data.heroSubtitle;
-  if (about) data.about = about.value.trim() || data.about;
-  data.heroSlides = collectImageRows('admin-hero-slide-list');
-  if (data.heroSlides.length) data.heroImage = data.heroSlides[0].src;
-  save(data);
-  renderAll();
-  showAdminMessage('Hero & About saved successfully.');
+  const slides = collectImageRows('admin-hero-slide-list');
+
+  if (!isSupabaseReady()) {
+    // Fallback to localStorage
+    if (heroTitle) data.heroTitle = heroTitle.value.trim() || data.heroTitle;
+    if (heroSubtitle) data.heroSubtitle = heroSubtitle.value.trim() || data.heroSubtitle;
+    if (about) data.about = about.value.trim() || data.about;
+    data.heroSlides = slides;
+    if (slides.length) data.heroImage = slides[0].src;
+    save(data);
+    renderAll();
+    showAdminMessage('Hero & About saved to localStorage.');
+    return;
+  }
+
+  try {
+    // Save text content to site_settings
+    const updates = [];
+    if (heroTitle && heroTitle.value.trim()) {
+      updates.push(saveSiteSetting('heroTitle', { text: heroTitle.value.trim() }));
+    }
+    if (heroSubtitle && heroSubtitle.value.trim()) {
+      updates.push(saveSiteSetting('heroSubtitle', { text: heroSubtitle.value.trim() }));
+    }
+    if (about && about.value.trim()) {
+      updates.push(saveSiteSetting('about', { text: about.value.trim() }));
+    }
+    await Promise.all(updates);
+
+    // Delete all existing slides and insert new ones
+    const { error: deleteError } = await SUPABASE
+      .from('hero_slides')
+      .delete()
+      .neq('id', '00000000-0000-0000-0000-000000000000');
+
+    if (deleteError) {
+      console.error('[hero] Error deleting old slides:', deleteError.message);
+      showAdminMessage('Failed to save hero slides.', 'notice');
+      return;
+    }
+
+    if (slides.length > 0) {
+      const records = slides.map((slide, index) => ({
+        src: slide.src,
+        caption: slide.caption || null,
+        order: index,
+        active: true,
+      }));
+
+      const { error: insertError } = await SUPABASE
+        .from('hero_slides')
+        .insert(records);
+
+      if (insertError) {
+        console.error('[hero] Error inserting slides:', insertError.message);
+        showAdminMessage('Failed to save hero slides.', 'notice');
+        return;
+      }
+    }
+
+    // Update localStorage as well
+    if (heroTitle) data.heroTitle = heroTitle.value.trim();
+    if (heroSubtitle) data.heroSubtitle = heroSubtitle.value.trim();
+    if (about) data.about = about.value.trim();
+    data.heroSlides = slides;
+    if (slides.length) data.heroImage = slides[0].src;
+    save(data);
+    renderAll();
+
+    showAdminMessage('Hero & About saved successfully.');
+  } catch (err) {
+    console.error('[hero] Save exception:', err);
+    showAdminMessage('Failed to save hero content.', 'notice');
+  }
 };
 
-const saveEvents = () => {
-  data.programme = collectEventRows();
-  save(data);
-  renderAll();
-  showAdminMessage('Programme saved successfully.');
+
+
+const saveEvents = async () => {
+  const events = collectEventRows();
+
+  if (!isSupabaseReady()) {
+    // Fallback to localStorage
+    data.programme = events;
+    save(data);
+    renderAll();
+    showAdminMessage('Programme saved to localStorage.');
+    return;
+  }
+
+  try {
+    // Delete all existing events and insert new ones
+    const { error: deleteError } = await SUPABASE
+      .from('programme_events')
+      .delete()
+      .neq('id', '00000000-0000-0000-0000-000000000000');
+
+    if (deleteError) {
+      console.error('[events] Error deleting old events:', deleteError.message);
+      showAdminMessage('Failed to save programme events.', 'notice');
+      return;
+    }
+
+    if (events.length > 0) {
+      const records = events.map((event, index) => ({
+        date: event.date || null,
+        time: event.time || null,
+        location: event.location || null,
+        title: event.title || 'Untitled Event',
+        description: event.description || null,
+        contact: event.contact || null,
+        order: index,
+      }));
+
+      const { error: insertError } = await SUPABASE
+        .from('programme_events')
+        .insert(records);
+
+      if (insertError) {
+        console.error('[events] Error inserting events:', insertError.message);
+        showAdminMessage('Failed to save programme events.', 'notice');
+        return;
+      }
+    }
+
+    // Update localStorage as well
+    data.programme = events;
+    save(data);
+    renderAll();
+
+    showAdminMessage('Programme saved successfully.');
+  } catch (err) {
+    console.error('[events] Save exception:', err);
+    showAdminMessage('Failed to save programme events.', 'notice');
+  }
 };
 
-const saveTablers = () => {
-  data.tablers = collectTablerRows();
+
+
+const saveTablers = async () => {
+  const rows = collectTablerRows();
+  if (!rows.length) {
+    showAdminMessage('No tablers to save. Add at least one tabler.', 'notice');
+    return;
+  }
+  if (!isSupabaseReady()) {
+    // Fallback to localStorage
+    data.tablers = rows;
+    save(data);
+    renderAll();
+    showAdminMessage('Tablers saved to browser storage (Supabase not ready).', 'notice');
+    return;
+  }
+
+  // Save each tabler to Supabase
+  for (const tabler of rows) {
+    if (tabler.id && tabulersInEdit[tabler.id]) {
+      // Update existing
+      const result = await updateTabler(tabler.id, {
+        name: tabler.name,
+        title: tabler.title,
+        bio: tabler.bio,
+        photo: tabler.photo,
+      });
+      if (!result) {
+        showAdminMessage(`Failed to update tabler: ${tabler.name}`, 'notice');
+        return;
+      }
+    } else {
+      // Insert new
+      const result = await addTabler(tabler);
+      if (!result) {
+        showAdminMessage(`Failed to add tabler: ${tabler.name}`, 'notice');
+        return;
+      }
+    }
+  }
+
+  // Reload from Supabase
+  const refreshedTablers = await loadTablers();
+  data.tablers = refreshedTablers;
   save(data);
   renderAll();
-  showAdminMessage('Tablers saved successfully.');
+  tabulersInEdit = {};
+  showAdminMessage(`Tablers saved successfully (${rows.length} total).`);
 };
 
-const saveSettings = () => {
+const saveSettings = async () => {
   const submitUrl = adminGet('admin-submit-url');
   const feedUrl = adminGet('admin-feed-url');
   const adminUrl = adminGet('admin-admin-url');
-  if (submitUrl) data.integrations.guestbookSubmitUrl = submitUrl.value.trim();
-  if (feedUrl) data.integrations.guestbookFeedUrl = feedUrl.value.trim();
-  if (adminUrl) data.integrations.adminDashboardUrl = adminUrl.value.trim();
-  save(data);
-  showAdminMessage('Settings saved successfully.');
+  
+  const urlsToSave = {
+    guestbookSubmitUrl: submitUrl?.value.trim() || '',
+    guestbookFeedUrl: feedUrl?.value.trim() || '',
+    adminDashboardUrl: adminUrl?.value.trim() || '',
+  };
+  
+  if (!isSupabaseReady()) {
+    // Fallback to localStorage
+    if (submitUrl) data.integrations.guestbookSubmitUrl = urlsToSave.guestbookSubmitUrl;
+    if (feedUrl) data.integrations.guestbookFeedUrl = urlsToSave.guestbookFeedUrl;
+    if (adminUrl) data.integrations.adminDashboardUrl = urlsToSave.adminDashboardUrl;
+    save(data);
+    showAdminMessage('Settings saved to localStorage.');
+    return;
+  }
+  
+  try {
+    // Save to site_settings table
+    await saveSiteSetting('integrations', urlsToSave);
+    
+    // Also update localStorage
+    if (submitUrl) data.integrations.guestbookSubmitUrl = urlsToSave.guestbookSubmitUrl;
+    if (feedUrl) data.integrations.guestbookFeedUrl = urlsToSave.guestbookFeedUrl;
+    if (adminUrl) data.integrations.adminDashboardUrl = urlsToSave.adminDashboardUrl;
+    save(data);
+    
+    showAdminMessage('Settings saved successfully.');
+  } catch (err) {
+    console.error('[settings] Save exception:', err);
+    showAdminMessage('Failed to save settings.', 'notice');
+  }
 };
+;
 
 // Wraps a save function to give its button loading → saved → idle feedback
-const withSaveFeedback = (btnId, saveFn) => () => {
+const withSaveFeedback = (btnId, saveFn) => async () => {
   const btn = adminGet(btnId);
   const originalLabel = btn?.textContent ?? 'Save Changes';
   setBtnState(btn, 'loading');
-  saveFn();
+  await saveFn();
   setBtnState(btn, 'saved');
   setTimeout(() => {
     if (btn?.classList.contains('btn--saved')) setBtnState(btn, 'idle', originalLabel);
@@ -374,23 +759,64 @@ const deleteEntry = (index) => {
   showAdminMessage('Entry deleted.');
 };
 
-const loadAdminState = () => {
+const loadAdminState = async () => {
+  // Load hero text from site_settings
   const heroTitle = adminGet('admin-hero-title');
   const heroSubtitle = adminGet('admin-hero-subtitle');
   const about = adminGet('admin-about');
-  if (heroTitle) heroTitle.value = data.heroTitle || '';
-  if (heroSubtitle) heroSubtitle.value = data.heroSubtitle || '';
-  if (about) about.value = data.about || '';
-  renderImageRows('admin-hero-slide-list', data.heroSlides || []);
+  
+  if (isSupabaseReady()) {
+    const heroTitleValue = await loadSiteSetting('heroTitle');
+    const heroSubtitleValue = await loadSiteSetting('heroSubtitle');
+    const aboutValue = await loadSiteSetting('about');
+    
+    if (heroTitle) heroTitle.value = heroTitleValue?.text || data.heroTitle || '';
+    if (heroSubtitle) heroSubtitle.value = heroSubtitleValue?.text || data.heroSubtitle || '';
+    if (about) about.value = aboutValue?.text || data.about || '';
+  } else {
+    if (heroTitle) heroTitle.value = data.heroTitle || '';
+    if (heroSubtitle) heroSubtitle.value = data.heroSubtitle || '';
+    if (about) about.value = data.about || '';
+  }
+  
+  // Load hero slides from Supabase
+  const heroSlides = await loadHeroSlides();
+  data.heroSlides = heroSlides.length ? heroSlides : (data.heroSlides || []);
+  renderImageRows('admin-hero-slide-list', data.heroSlides);
+  
+  // Load programme events from Supabase
+  const events = await loadProgrammeEvents();
+  data.programme = events.length ? events : (data.programme || []);
   renderEventEditor(data.programme);
+
+  // Load tablers from Supabase
+  const tablers = await loadTablers();
+  data.tablers = tablers.length ? tablers : (data.tablers || []);
+  tablers.forEach(t => { tabulersInEdit[t.id] = true; }); // Mark as existing
   renderTablerEditor(data.tablers);
+
+  // Load settings from Supabase
   const submitUrl = adminGet('admin-submit-url');
   const feedUrl = adminGet('admin-feed-url');
   const adminUrl = adminGet('admin-admin-url');
-  if (submitUrl) submitUrl.value = data.integrations?.guestbookSubmitUrl || '';
-  if (feedUrl) feedUrl.value = data.integrations?.guestbookFeedUrl || '';
-  if (adminUrl) adminUrl.value = data.integrations?.adminDashboardUrl || '';
-};
+  
+  if (isSupabaseReady()) {
+    const integrationsValue = await loadSiteSetting('integrations');
+    if (integrationsValue && typeof integrationsValue === 'object') {
+      if (submitUrl) submitUrl.value = integrationsValue.guestbookSubmitUrl || data.integrations?.guestbookSubmitUrl || '';
+      if (feedUrl) feedUrl.value = integrationsValue.guestbookFeedUrl || data.integrations?.guestbookFeedUrl || '';
+      if (adminUrl) adminUrl.value = integrationsValue.adminDashboardUrl || data.integrations?.adminDashboardUrl || '';
+    } else {
+      if (submitUrl) submitUrl.value = data.integrations?.guestbookSubmitUrl || '';
+      if (feedUrl) feedUrl.value = data.integrations?.guestbookFeedUrl || '';
+      if (adminUrl) adminUrl.value = data.integrations?.adminDashboardUrl || '';
+    }
+  } else {
+    if (submitUrl) submitUrl.value = data.integrations?.guestbookSubmitUrl || '';
+    if (feedUrl) feedUrl.value = data.integrations?.guestbookFeedUrl || '';
+    if (adminUrl) adminUrl.value = data.integrations?.adminDashboardUrl || '';
+  }
+};;
 
 const bindAdminEvents = () => {
   // Panel switching
@@ -421,23 +847,58 @@ const bindAdminEvents = () => {
   adminSafe('admin-save-tablers', 'click', withSaveFeedback('admin-save-tablers', saveTablers));
   adminSafe('admin-add-tabler', 'click', () => {
     const list = adminGet('admin-tabler-list');
-    if (list) list.appendChild(createTablerRow({}));
+    if (list) {
+      const newRow = createTablerRow({});
+      newRow.dataset.isNew = 'true';
+      list.appendChild(newRow);
+    }
   });
+
+  // Bind delete buttons for tablers
+  const bindTablerDelete = () => {
+    document.querySelectorAll('.admin-tabler-remove').forEach(btn => {
+      btn.removeEventListener('click', handleTablerDelete);
+      btn.addEventListener('click', handleTablerDelete);
+    });
+  };
+
+  const handleTablerDelete = (event) => {
+    const row = event.target.closest('.admin-tabler-row');
+    if (!row) return;
+    const id = row.dataset.tablerId;
+    if (id && tabulersInEdit[id]) {
+      // Soft delete from Supabase
+      deleteTabler(id).then(success => {
+        if (success) {
+          row.remove();
+          showAdminMessage('Tabler will be removed when you save changes.');
+          delete tabulersInEdit[id];
+        } else {
+          showAdminMessage('Failed to delete tabler.', 'notice');
+        }
+      });
+    } else {
+      // Just remove from UI if new
+      row.remove();
+      showAdminMessage('Tabler removed.');
+    }
+  };
+
+  bindTablerDelete();
 
   // Settings
   adminSafe('admin-save-settings', 'click', withSaveFeedback('admin-save-settings', saveSettings));
 
   // Reset
-  adminSafe('admin-reset-content', 'click', () => {
+  adminSafe('admin-reset-content', 'click', async () => {
     if (!confirm('Reset all content to defaults? This cannot be undone.')) return;
     localStorage.removeItem(KEY);
     localStorage.removeItem(GUESTBOOK_KEY);
     localStorage.removeItem(GUESTBOOK_APPROVED_KEY);
     data = load();
     renderAll();
-    loadAdminState();
-    renderPendingEntries();
-    renderApprovedEntries();
+    await loadAdminState();
+    await loadGuestbookDashboard();
     showAdminMessage('Content reset to defaults.');
   });
 
@@ -449,13 +910,14 @@ const bindAdminEvents = () => {
   // Guestbook moderation
   const pendingEl = adminGet('pending-entries');
   if (pendingEl) {
-    pendingEl.addEventListener('click', (event) => {
+    pendingEl.addEventListener('click', async (event) => {
       const button = event.target.closest('button[data-action]');
       if (!button) return;
       const action = button.dataset.action;
+      const id = button.dataset.id;
       const index = Number(button.dataset.index);
-      if (action === 'approve') approveEntry(index);
-      if (action === 'delete') deleteEntry(index);
+      if (action === 'approve') await approveEntry(id, index);
+      if (action === 'reject') await rejectEntry(id, index);
     });
   }
 };
@@ -846,13 +1308,132 @@ const createAlbum = async () => {
 };
 
 // ============================================================
+// ============================================================
+// Hero Slides CRUD Operations with Supabase
+// ============================================================
+
+/**
+ * Load hero slides from Supabase
+ * @returns {Promise<Array>} Array of hero slide objects
+ */
+const loadHeroSlides = async () => {
+  if (!isSupabaseReady()) {
+    console.warn('[hero] Supabase not ready, using localStorage');
+    return data.heroSlides || [];
+  }
+  try {
+    const { data: rows, error } = await SUPABASE
+      .from('hero_slides')
+      .select('*')
+      .eq('active', true)
+      .order('order', { ascending: true });
+    if (error) {
+      console.error('[hero] Load error:', error.message);
+      return data.heroSlides || [];
+    }
+    return rows || [];
+  } catch (err) {
+    console.error('[hero] Load exception:', err);
+    return data.heroSlides || [];
+  }
+};
+
+// ============================================================
+// Programme Events CRUD Operations with Supabase
+// ============================================================
+
+/**
+ * Load programme events from Supabase
+ * @returns {Promise<Array>} Array of event objects
+ */
+const loadProgrammeEvents = async () => {
+  if (!isSupabaseReady()) {
+    console.warn('[events] Supabase not ready, using localStorage');
+    return data.programme || [];
+  }
+  try {
+    const { data: rows, error } = await SUPABASE
+      .from('programme_events')
+      .select('*')
+      .order('date', { ascending: true });
+    if (error) {
+      console.error('[events] Load error:', error.message);
+      return data.programme || [];
+    }
+    return rows || [];
+  } catch (err) {
+    console.error('[events] Load exception:', err);
+    return data.programme || [];
+  }
+};
+
+// ============================================================
+// Site Settings CRUD Operations with Supabase
+// ============================================================
+
+/**
+ * Load a single setting from Supabase
+ * @param {string} key - Setting key
+ * @returns {Promise<any>} Setting value or null
+ */
+const loadSiteSetting = async (key) => {
+  if (!isSupabaseReady()) {
+    console.warn('[settings] Supabase not ready');
+    return null;
+  }
+  try {
+    const { data: row, error} = await SUPABASE
+      .from('site_settings')
+      .select('value')
+      .eq('key', key)
+      .single();
+    if (error) {
+      if (error.code !== 'PGRST116') { // Not found is okay
+        console.error(`[settings] Load error for ${key}:`, error.message);
+      }
+      return null;
+    }
+    return row?.value;
+  } catch (err) {
+    console.error(`[settings] Load exception for ${key}:`, err);
+    return null;
+  }
+};
+
+/**
+ * Save a single setting to Supabase
+ * @param {string} key - Setting key
+ * @param {any} value - Setting value (will be stored as JSON)
+ * @returns {Promise<boolean>} Success status
+ */
+const saveSiteSetting = async (key, value) => {
+  if (!isSupabaseReady()) {
+    console.warn('[settings] Supabase not ready');
+    return false;
+  }
+  try {
+    const { error } = await SUPABASE
+      .from('site_settings')
+      .upsert({
+        key,
+        value: typeof value === 'object' ? value : { data: value },
+      });
+    if (error) {
+      console.error(`[settings] Save error for ${key}:`, error.message);
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.error(`[settings] Save exception for ${key}:`, err);
+    return false;
+  }
+};
 
 const initAdmin = async () => {
   await requireAuth();
-  loadAdminState();
+  await loadAdminState(); // Now async to load tablers from Supabase
   renderGalleryAdmin(); // async — updates DOM when Supabase responds
-  renderPendingEntries();
-  renderApprovedEntries();
+  await loadGuestbookDashboard(); // Load guestbook with real-time updates
   bindAdminEvents();
 };
 
