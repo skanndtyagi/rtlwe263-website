@@ -1487,12 +1487,78 @@ const saveSiteSetting = async (key, value) => {
   }
 };
 
+/**
+ * Handle URL parameters for email-to-dashboard actions
+ * Example: ?action=approve&entry=uuid redirects to guestbook and highlights entry
+ */
+const handleURLParameters = () => {
+  const params = new URLSearchParams(window.location.search);
+  const action = params.get('action');
+  const entryId = params.get('entry');
+  const panel = params.get('panel');
+
+  // Switch to specific panel if requested
+  if (panel) {
+    switchPanel(panel);
+  }
+
+  // Handle approve action from email
+  if (action === 'approve' && entryId) {
+    // Switch to guestbook panel
+    switchPanel('panel-guestbook');
+
+    // Wait a moment for panel to load, then highlight and prompt
+    setTimeout(async () => {
+      // Find the entry card in pending list
+      const entryCard = document.querySelector(`[data-entry-id="${entryId}"]`);
+
+      if (entryCard) {
+        // Scroll to entry
+        entryCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+        // Highlight the entry
+        entryCard.style.outline = '3px solid #4CAF50';
+        entryCard.style.outlineOffset = '4px';
+
+        // Show approve confirmation
+        const confirmed = confirm('Approve this guestbook entry?\n\nClick OK to approve and publish it to your website.');
+
+        if (confirmed) {
+          // Find the approve button and click it
+          const approveBtn = entryCard.querySelector('[data-action="approve"]');
+          if (approveBtn) {
+            approveBtn.click();
+            showAdminMessage('Entry approved successfully! ✅', 'success');
+          } else {
+            // Fallback: call approveEntry directly
+            const index = parseInt(entryCard.dataset.entryIndex || '0');
+            await approveEntry(entryId, index);
+            showAdminMessage('Entry approved successfully! ✅', 'success');
+          }
+        }
+
+        // Remove highlight after 3 seconds
+        setTimeout(() => {
+          entryCard.style.outline = '';
+          entryCard.style.outlineOffset = '';
+        }, 3000);
+      } else {
+        showAdminMessage('Entry not found. It may have already been approved or rejected.', 'notice');
+      }
+
+      // Clean up URL
+      window.history.replaceState({}, document.title, '/admin.html');
+    }, 500);
+  }
+};
+
 const initAdmin = async () => {
   try {
     await requireAuth();
     await loadAdminState(); // Now async to load tablers from Supabase
     renderGalleryAdmin(); // async — updates DOM when Supabase responds
     await loadGuestbookDashboard(); // Load guestbook with real-time updates
+    handleURLParameters(); // Handle approve-from-email and other URL actions
     bindAdminEvents();
     console.log('[admin] Initialization complete');
   } catch (error) {
