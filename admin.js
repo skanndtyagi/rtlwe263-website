@@ -69,9 +69,9 @@ const switchPanel = (targetId) => {
   if (panel) panel.classList.add('active');
   document.querySelectorAll(`.admin-nav-btn[data-panel="${targetId}"]`).forEach(b => b.classList.add('active'));
 
-  // Clear guestbook notifications when opening guestbook panel
+  // Mark guestbook as viewed (badge still shows total count)
   if (targetId === 'panel-guestbook' && typeof window.notificationService !== 'undefined') {
-    window.notificationService.markAsRead();
+    window.notificationService.markAsViewed();
   }
 };
 
@@ -425,7 +425,13 @@ const showAdminMessage = (text, type = 'notice') => {
   msg.textContent = text;
   msg.className = `admin-message ${type} visible`;
   clearTimeout(showAdminMessage._timer);
-  showAdminMessage._timer = setTimeout(() => { if (msg) msg.classList.remove('visible'); }, 3500);
+  showAdminMessage._timer = setTimeout(() => {
+    if (msg) {
+      msg.classList.remove('visible');
+      // Completely hide after fade out
+      setTimeout(() => { msg.style.display = 'none'; }, 300);
+    }
+  }, 2000); // Reduced from 3500ms to 2000ms
 };
 
 // Button state utility — drives all micro-interaction feedback
@@ -1613,11 +1619,14 @@ const initAdmin = async () => {
     // Check for new guestbook notifications
     console.log('[admin] Step 4.5: Checking for notifications...');
     if (typeof window.notificationService !== 'undefined') {
-      const { count, entries } = await window.notificationService.checkForNewEntries();
-      if (count > 0) {
-        showAdminMessage(`You have ${count} new guestbook ${count === 1 ? 'entry' : 'entries'}!`, 'notice');
-        window.notificationService.updateBadge(count);
+      // Check for NEW entries (for toast notification)
+      const { count: newCount } = await window.notificationService.checkForNewEntries();
+      if (newCount > 0) {
+        showAdminMessage(`You have ${newCount} new guestbook ${newCount === 1 ? 'entry' : 'entries'}!`, 'notice');
       }
+
+      // Update badge with TOTAL pending count (always shows live count)
+      await window.notificationService.updateBadge();
     }
     console.log('[admin] ✅ Notifications checked');
 

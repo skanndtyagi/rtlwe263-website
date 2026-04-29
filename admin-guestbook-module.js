@@ -99,9 +99,9 @@ const approveEntry = async (id, index) => {
   refreshEntries();
   showAdminMessage('Entry approved successfully.');
 
-  // Decrement notification badge count
+  // Refresh badge to show updated total count
   if (typeof window.notificationService !== 'undefined') {
-    window.notificationService.decrementCount();
+    await window.notificationService.refreshBadge();
   }
 
   return true;
@@ -141,9 +141,9 @@ const rejectEntry = async (id, index) => {
   await renderPendingEntries();
   showAdminMessage('Entry rejected.');
 
-  // Decrement notification badge count
+  // Refresh badge to show updated total count
   if (typeof window.notificationService !== 'undefined') {
-    window.notificationService.decrementCount();
+    await window.notificationService.refreshBadge();
   }
 
   return true;
