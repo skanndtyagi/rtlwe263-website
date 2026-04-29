@@ -846,18 +846,29 @@ const loadAdminState = async () => {
 };;
 
 const bindAdminEvents = () => {
-  // Panel switching (with mobile touch support)
-  document.querySelectorAll('.admin-nav-btn').forEach(btn => {
-    const handler = () => {
-      console.log('[admin] Nav button clicked:', btn.dataset.panel);
-      switchPanel(btn.dataset.panel);
-    };
-    btn.addEventListener('click', handler);
-    btn.addEventListener('touchend', (e) => {
-      e.preventDefault();
-      handler();
-    }, { passive: false });
-  });
+  try {
+    console.log('[admin] Binding panel switching events...');
+    // Panel switching (with mobile touch support)
+    const navButtons = document.querySelectorAll('.admin-nav-btn');
+    console.log(`[admin] Found ${navButtons.length} navigation buttons`);
+
+    navButtons.forEach(btn => {
+      const handler = () => {
+        console.log('[admin] Nav button clicked:', btn.dataset.panel);
+        switchPanel(btn.dataset.panel);
+      };
+      btn.addEventListener('click', handler);
+
+      // Mobile touch support - don't prevent default to avoid breaking clicks
+      btn.addEventListener('touchstart', (e) => {
+        console.log('[admin] Touch on nav button:', btn.dataset.panel);
+      }, { passive: true });
+    });
+    console.log('[admin] ✅ Panel switching events bound');
+  } catch (error) {
+    console.error('[admin] ❌ Error binding panel events:', error);
+    throw error;
+  }
 
   // Hero & About
   adminSafe('admin-save-hero', 'click', withSaveFeedback('admin-save-hero', saveHero));
