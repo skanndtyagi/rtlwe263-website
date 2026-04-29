@@ -659,3 +659,49 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ================================================================
+   NOTIFICATION BADGE
+   Displays unread guestbook entry count
+   ================================================================ */
+
+.admin-nav-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--admin-bg);
+  background: var(--admin-error);
+  border-radius: 10px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  z-index: 10;
+}
+
+/* Badge pulse animation */
+@keyframes badgePulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.badge-pulse {
+  animation: badgePulse 0.4s ease-out;
+}
+
+/* Make nav button position relative for absolute badge */
+.admin-nav-btn {
+  position: relative;
+}

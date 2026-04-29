@@ -64,6 +64,15 @@ const handleAdminLogin = async (email, password) => {
 
   if (data?.session) {
     console.log('[admin-login] Authentication successful');
+
+    // Store login timestamp for notification system
+    try {
+      localStorage.setItem('lwe623-admin-last-visit', new Date().toISOString());
+      console.log('[admin-login] Login timestamp stored for notifications');
+    } catch (error) {
+      console.warn('[admin-login] Could not store login timestamp:', error);
+    }
+
     showLoginError('✓ Login successful! Redirecting...', 'success');
     window.location.href = 'admin.html';
   }

@@ -68,6 +68,11 @@ const switchPanel = (targetId) => {
   const panel = document.getElementById(targetId);
   if (panel) panel.classList.add('active');
   document.querySelectorAll(`.admin-nav-btn[data-panel="${targetId}"]`).forEach(b => b.classList.add('active'));
+
+  // Clear guestbook notifications when opening guestbook panel
+  if (targetId === 'panel-guestbook' && typeof window.notificationService !== 'undefined') {
+    window.notificationService.markAsRead();
+  }
 };
 
 const createImageRow = (item = {}) => {
@@ -1604,6 +1609,17 @@ const initAdmin = async () => {
     console.log('[admin] Step 4: Loading guestbook...');
     await loadGuestbookDashboard(); // Load guestbook with real-time updates
     console.log('[admin] ✅ Guestbook loaded');
+
+    // Check for new guestbook notifications
+    console.log('[admin] Step 4.5: Checking for notifications...');
+    if (typeof window.notificationService !== 'undefined') {
+      const { count, entries } = await window.notificationService.checkForNewEntries();
+      if (count > 0) {
+        showAdminMessage(`You have ${count} new guestbook ${count === 1 ? 'entry' : 'entries'}!`, 'notice');
+        window.notificationService.updateBadge(count);
+      }
+    }
+    console.log('[admin] ✅ Notifications checked');
 
     console.log('[admin] Step 5: Handling URL parameters...');
     handleURLParameters(); // Handle approve-from-email and other URL actions

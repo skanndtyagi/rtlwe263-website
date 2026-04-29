@@ -98,6 +98,12 @@ const approveEntry = async (id, index) => {
   await renderApprovedEntries();
   refreshEntries();
   showAdminMessage('Entry approved successfully.');
+
+  // Decrement notification badge count
+  if (typeof window.notificationService !== 'undefined') {
+    window.notificationService.decrementCount();
+  }
+
   return true;
 };
 
@@ -134,6 +140,12 @@ const rejectEntry = async (id, index) => {
 
   await renderPendingEntries();
   showAdminMessage('Entry rejected.');
+
+  // Decrement notification badge count
+  if (typeof window.notificationService !== 'undefined') {
+    window.notificationService.decrementCount();
+  }
+
   return true;
 };
 
