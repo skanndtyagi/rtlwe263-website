@@ -1570,15 +1570,32 @@ const handleURLParameters = () => {
 
 const initAdmin = async () => {
   try {
+    console.log('[admin] Step 1: Checking auth...');
     await requireAuth();
+
+    console.log('[admin] Step 2: Loading admin state...');
     await loadAdminState(); // Now async to load tablers from Supabase
+
+    console.log('[admin] Step 3: Rendering gallery...');
     renderGalleryAdmin(); // async — updates DOM when Supabase responds
+
+    console.log('[admin] Step 4: Loading guestbook...');
     await loadGuestbookDashboard(); // Load guestbook with real-time updates
+
+    console.log('[admin] Step 5: Handling URL parameters...');
     handleURLParameters(); // Handle approve-from-email and other URL actions
+
+    console.log('[admin] Step 6: Binding events...');
     bindAdminEvents();
-    console.log('[admin] Initialization complete');
+
+    console.log('[admin] ✅ Initialization complete');
   } catch (error) {
-    console.error('[admin] Initialization error:', error);
+    console.error('[admin] ❌ Initialization failed at step:', error);
+    console.error('[admin] Error details:', {
+      name: error.name,
+      message: error.message,
+      stack: error.stack
+    });
     showAdminMessage('Failed to initialize admin panel. Check console for errors.', 'notice');
   }
 };
