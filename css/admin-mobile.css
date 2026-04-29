@@ -484,6 +484,116 @@
 }
 
 /* ================================================================
+   MOBILE: Make existing .admin-sidebar work as bottom nav
+   ================================================================ */
+
+@media (max-width: 767px) {
+  /* Hide desktop sidebar container */
+  .admin-sidebar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    top: auto;
+    z-index: 1000;
+    background: var(--admin-surface-elevated);
+    border-top: 1px solid var(--admin-border);
+    border-right: none;
+    padding: var(--space-sm);
+    box-shadow: var(--shadow-xl);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    width: 100%;
+    height: auto;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Hide brand and footer on mobile */
+  .admin-sidebar-brand,
+  .admin-sidebar-footer {
+    display: none;
+  }
+
+  /* Make nav horizontal grid */
+  .admin-sidebar-nav {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: var(--space-xs);
+    padding: 0;
+  }
+
+  /* Style existing .admin-nav-btn for mobile */
+  .admin-nav-btn {
+    display: flex !important;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: var(--space-xs);
+    min-height: var(--touch-target);
+    background: transparent;
+    border: none;
+    border-radius: var(--radius-sm);
+    color: var(--admin-text-secondary);
+    font-size: 0.625rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    -webkit-tap-highlight-color: transparent;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .admin-nav-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--admin-primary);
+    opacity: 0;
+    transition: opacity var(--transition-fast);
+  }
+
+  .admin-nav-btn:active::before {
+    opacity: 0.1;
+  }
+
+  .admin-nav-btn.active {
+    color: var(--admin-primary);
+    background: rgba(212, 165, 116, 0.1);
+  }
+
+  .admin-nav-btn.active::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 24px;
+    height: 3px;
+    background: var(--admin-primary);
+    border-radius: 0 0 3px 3px;
+  }
+
+  .admin-nav-btn svg {
+    width: 20px;
+    height: 20px;
+    transition: transform var(--transition-fast);
+  }
+
+  .admin-nav-btn:active svg {
+    transform: scale(0.9);
+  }
+
+  /* Add padding for bottom nav */
+  .admin-main {
+    padding-bottom: calc(var(--touch-target) + 32px);
+  }
+}
+
+/* ================================================================
    TABLET & DESKTOP (Adaptive Layout)
    ================================================================ */
 
