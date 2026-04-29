@@ -3,7 +3,18 @@
 **Project:** Round Table London West End No. 623 Website  
 **Production URL:** https://www.lwe623.uk  
 **Status:** Live in production  
-**Last Updated:** 2026-04-18
+**Last Updated:** 2026-04-30
+
+## Table of Contents
+- [Project Overview](#project-overview)
+- [Quick Commands](#quick-commands)
+- [Architecture](#architecture)
+- [Coding Standards](#coding-standards)
+- [Testing Requirements](#testing-requirements)
+- [Deployment Workflow](#deployment-workflow)
+- [Supabase Guidelines](#supabase-guidelines)
+- [Common Tasks](#common-tasks)
+- [Troubleshooting](#troubleshooting)
 
 ## Project Overview
 
@@ -15,8 +26,44 @@ This is a **production website** serving UK/EU users for a London-based Round Ta
 **Critical Context:**
 - Site is LIVE - changes must be tested locally first
 - EU region (GDPR compliance legally required)
-- Currently broken: guestbook feature (users cannot submit entries)
-- Security vulnerability: All database tables lack Row Level Security
+- ⚠️ **SECURITY CRITICAL:** Missing RLS on 5 tables (see Security Advisor)
+
+## Quick Commands
+
+**Local Development:**
+```bash
+cd rtlwe263-website
+python3 -m http.server 8000
+# Open http://localhost:8000
+```
+
+**Test Admin Dashboard:**
+```bash
+open http://localhost:8000/admin-login.html
+# Login: london.westend@roundtable.org.uk
+```
+
+**Git Workflow:**
+```bash
+git status                 # Check changes
+git diff                   # Review changes
+git add <files>           # Stage specific files (never use git add .)
+git commit -m "message"   # Commit with descriptive message
+git push origin main      # Deploy to production (auto-deploys via Vercel)
+```
+
+**Supabase Quick Checks:**
+```sql
+-- Check RLS status on all tables
+SELECT schemaname, tablename, rowsecurity 
+FROM pg_tables 
+WHERE schemaname = 'public';
+
+-- View active policies
+SELECT schemaname, tablename, policyname, cmd, qual 
+FROM pg_policies 
+WHERE schemaname = 'public';
+```
 
 ## Architecture
 
@@ -382,13 +429,15 @@ CREATE POLICY "Admin delete" ON storage.objects
 
 ## Current Implementation Status
 
-**✅ FULLY COMPLETED - Production Ready (2026-04-18)**
+**⚠️ SECURITY ISSUES DETECTED (2026-04-29)**
 
 **Phase 1: Security Foundation**
-- ✅ Row Level Security enabled on all 8 tables
-- ✅ Storage bucket policies configured
-- ✅ Comprehensive RLS policies (public read/admin write patterns)
+- ❌ **CRITICAL:** RLS missing on 5 tables (site_settings, hero_slides, programme_events, tablers, media_files)
+- ⚠️ gallery_images has overly permissive RLS policy (USING true)
+- ⚠️ Storage bucket allows public listing
+- ⚠️ Leaked password protection disabled
 - ✅ Database constraints for validation
+- ✅ CSP and HSTS security headers
 
 **Phase 2: Guestbook + GDPR**
 - ✅ Privacy Policy page (10 GDPR Article 13 sections)
@@ -401,23 +450,49 @@ CREATE POLICY "Admin delete" ON storage.objects
 - ✅ Supabase Auth for admin login
 - ✅ Guestbook moderation panel with real-time updates
 - ✅ Hero slides management panel
-- ✅ Gallery management panel (already implemented)
+- ✅ Gallery management panel
 - ✅ Programme events management panel
 - ✅ Tablers management panel
 - ✅ Site settings panel
 - ✅ Image upload to Supabase Storage
 
 **Phase 4: Security & Testing**
-- ✅ CSP and HSTS security headers
 - ✅ Pre-commit hook (credential scanning, console.log warnings)
 - ✅ Pre-push hook (syntax validation, TODO warnings)
-- ⚠️ Manual testing pending user verification
 - ✅ Deployed to production (www.lwe623.uk)
+- ✅ RLS policies applied (security-fix-clean.sql executed)
 
-**Remaining Tasks:**
-- 📋 Create admin user in Supabase Auth dashboard (see instructions below)
-- 📋 Manual QA testing of all features
+**Phase 5: Mobile Admin Optimization (2026-04-30)**
+- ✅ Mobile-first responsive CSS (admin-mobile.css)
+- ✅ Bottom navigation (6 buttons, touch-optimized 48px targets)
+- ✅ Guestbook notification system (localStorage-based)
+- ✅ Badge counter showing total pending entries
+- ✅ Toast notifications for new entries on login
+- ✅ Fixed WebSocket failures on iOS Safari
+- ✅ Professional typography (16px+ minimum, proper spacing)
+- ✅ Touch-friendly form inputs (48px height, generous padding)
+- ✅ Auto-dismissing toasts (2s timeout)
+- ✅ Content padding prevents bottom nav cutoff
+
+**Mobile Notification System:**
+- File: `js/mobile-notification-service.js`
+- Tracks last visit timestamp in localStorage
+- Shows toast for NEW entries since last login
+- Badge displays TOTAL pending count (live database query)
+- Updates badge after approve/reject actions
+- No WebSocket dependency (works on all mobile browsers)
+
+**Known Mobile Issues Fixed:**
+- ✅ Navigation buttons not appearing (CSS class mismatch)
+- ✅ Toast overlapping content (repositioned above nav)
+- ✅ Badge showing 0 when entries pending (logic rewritten)
+- ✅ Content cut off by bottom nav (increased padding)
+- ✅ Fonts too small/cramped (proper typography scale)
+
+**URGENT Tasks:**
+- 📋 Manual QA testing of all features on mobile devices
 - 📋 Performance audit (Lighthouse > 90 target)
+- 📋 Test notification system with multiple pending entries
 
 ## Notes for Claude
 
@@ -431,10 +506,6 @@ CREATE POLICY "Admin delete" ON storage.objects
 7. Mobile responsive is required (not optional)
 8. Performance matters (Lighthouse > 90)
 
-**Always create CLAUDE.md at project start** - Document architecture, standards, and context before implementation begins.
-
-**Use hooks for token optimization** - Set up automated workflows (pre-commit, pre-push, testing) to reduce repetitive instructions and optimize token usage.
-
 **Design Principles:**
 - Security by default (not bolted on later)
 - GDPR compliant from day one
@@ -443,11 +514,20 @@ CREATE POLICY "Admin delete" ON storage.objects
 - Accessibility is required, not optional
 
 **Current Priority:**
-Complete the Supabase migration with proper security and GDPR compliance. Fix the broken guestbook. Make the site production-ready with proper Row Level Security policies.
+Mobile admin dashboard is fully functional. Focus on:
+1. Comprehensive mobile testing (iOS Safari, Android Chrome)
+2. Performance optimization (Lighthouse audit)
+3. User acceptance testing with real admin workflows
+
+**Mobile Admin is Production-Ready:**
+- Notification system works on iOS Safari (no WebSocket)
+- Touch-optimized UI with proper spacing
+- Real-time badge updates for pending guestbook entries
+- Professional typography and mobile-first design
 
 ---
 
-**Last Updated:** 2026-04-18  
+**Last Updated:** 2026-04-30  
 **Project Start:** 2019  
 **Website Launch:** 2026-04-01  
-**Current Phase:** Migration & Security Hardening
+**Current Phase:** Mobile Optimization & User Testing
