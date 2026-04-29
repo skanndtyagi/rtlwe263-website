@@ -1,0 +1,518 @@
+/**
+ * LWE263 Mobile Admin Dashboard
+ * Design System: DESIGN-MOBILE-ADMIN.md
+ * Premium mobile-first CMS with elegant bottom navigation
+ */
+
+/* ================================================================
+   CSS CUSTOM PROPERTIES (Design Tokens)
+   ================================================================ */
+
+:root {
+  /* Background Layers */
+  --midnight-canvas: #0a0e1a;
+  --elevated-surface: #141824;
+  --raised-container: #1c2132;
+
+  /* Content Colors */
+  --pearl-text: #e8e9ed;
+  --steel-secondary: #9a9ca8;
+  --whisper-tertiary: #6b6d7a;
+
+  /* Accent & Semantics */
+  --royal-gold: #d4a574;
+  --warm-gold-hover: #e8ba8a;
+  --deep-gold-active: #c09560;
+  --success-mint: #4ade80;
+  --warning-amber: #fbbf24;
+  --error-coral: #f87171;
+  --info-sky: #60a5fa;
+
+  /* Structural */
+  --whisper-border: rgba(255, 255, 255, 0.08);
+  --glass-backdrop: rgba(20, 24, 36, 0.8);
+
+  /* Spacing System */
+  --space-xs: 0.5rem;    /* 8px */
+  --space-sm: 0.75rem;   /* 12px */
+  --space-md: 1rem;      /* 16px */
+  --space-lg: 1.5rem;    /* 24px */
+  --space-xl: 2rem;      /* 32px */
+
+  /* Touch Targets */
+  --touch-min: 48px;
+
+  /* Border Radius */
+  --radius-sm: 0.5rem;   /* 8px */
+  --radius-md: 0.75rem;  /* 12px */
+  --radius-lg: 1rem;     /* 16px */
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.5), 0 4px 6px rgba(0, 0, 0, 0.4);
+  --shadow-nav: 0 -4px 6px rgba(0, 0, 0, 0.1), 0 -2px 4px rgba(0, 0, 0, 0.06);
+
+  /* Transitions */
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 350ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ================================================================
+   MOBILE BASE STYLES (< 768px)
+   ================================================================ */
+
+@media (max-width: 767px) {
+  .admin-body {
+    background: var(--midnight-canvas);
+    color: var(--pearl-text);
+    font-family: 'Satoshi', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overscroll-behavior: none;
+  }
+
+  .admin-layout {
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ================================================================
+     MOBILE BOTTOM NAVIGATION (Replaces Sidebar)
+     ================================================================ */
+
+  .admin-sidebar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    background: var(--elevated-surface);
+    border-top: 1px solid var(--whisper-border);
+    box-shadow: var(--shadow-nav);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+
+    /* Safe area for iOS notch/home indicator */
+    padding: var(--space-sm) max(var(--space-sm), env(safe-area-inset-left))
+             max(var(--space-sm), env(safe-area-inset-bottom))
+             max(var(--space-sm), env(safe-area-inset-right));
+  }
+
+  /* Hide desktop sidebar elements */
+  .admin-sidebar-brand,
+  .admin-sidebar-footer {
+    display: none !important;
+  }
+
+  /* Navigation buttons in horizontal grid */
+  .admin-sidebar-nav {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: var(--space-xs);
+    padding: 0;
+    margin: 0;
+  }
+
+  /* ================================================================
+     MOBILE NAVIGATION BUTTONS
+     ================================================================ */
+
+  .admin-nav-btn {
+    /* Reset */
+    all: unset;
+    box-sizing: border-box;
+
+    /* Layout */
+    display: flex !important;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+
+    /* Sizing */
+    min-height: var(--touch-min);
+    min-width: var(--touch-min);
+    padding: var(--space-xs);
+
+    /* Appearance */
+    background: transparent;
+    border-radius: var(--radius-sm);
+    color: var(--steel-secondary);
+
+    /* Typography */
+    font-size: 0.625rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    line-height: 1.2;
+    text-align: center;
+
+    /* Interaction */
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+    position: relative;
+    overflow: hidden;
+
+    /* Transition */
+    transition: all var(--transition-fast);
+  }
+
+  /* Ripple effect base */
+  .admin-nav-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--royal-gold);
+    opacity: 0;
+    transition: opacity var(--transition-fast);
+  }
+
+  /* Active ripple */
+  .admin-nav-btn:active::before {
+    opacity: 0.1;
+  }
+
+  /* Active state styling */
+  .admin-nav-btn.active {
+    color: var(--royal-gold);
+    background: rgba(212, 165, 116, 0.1);
+  }
+
+  /* Active indicator (top border) */
+  .admin-nav-btn.active::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 24px;
+    height: 3px;
+    background: var(--royal-gold);
+    border-radius: 0 0 3px 3px;
+  }
+
+  /* Icon sizing */
+  .admin-nav-btn svg {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    transition: transform var(--transition-fast);
+  }
+
+  /* Icon press feedback */
+  .admin-nav-btn:active svg {
+    transform: scale(0.9);
+  }
+
+  /* ================================================================
+     MAIN CONTENT AREA
+     ================================================================ */
+
+  .admin-main {
+    flex: 1;
+    padding: var(--space-md);
+    padding-bottom: calc(64px + var(--space-md) + env(safe-area-inset-bottom));
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* ================================================================
+     PANELS
+     ================================================================ */
+
+  .admin-panel {
+    display: none;
+    animation: slideInUp var(--transition-base);
+  }
+
+  .admin-panel.active {
+    display: block;
+  }
+
+  @keyframes slideInUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Panel Header */
+  .admin-panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: var(--space-lg);
+    gap: var(--space-md);
+  }
+
+  .admin-panel-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: var(--pearl-text);
+    line-height: 1.2;
+    margin: 0;
+  }
+
+  .admin-panel-header p {
+    font-size: 0.875rem;
+    color: var(--steel-secondary);
+    margin: var(--space-xs) 0 0 0;
+    line-height: 1.6;
+  }
+
+  /* ================================================================
+     CARDS
+     ================================================================ */
+
+  .admin-card {
+    background: var(--raised-container);
+    border: 1px solid var(--whisper-border);
+    border-radius: var(--radius-md);
+    padding: var(--space-md);
+    margin-bottom: var(--space-md);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .admin-card-title {
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: var(--pearl-text);
+    margin: 0 0 var(--space-sm) 0;
+  }
+
+  /* ================================================================
+     BUTTONS
+     ================================================================ */
+
+  .btn, .btn-primary, .admin-save-btn {
+    /* Reset */
+    all: unset;
+    box-sizing: border-box;
+
+    /* Layout */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-xs);
+
+    /* Sizing */
+    min-height: var(--touch-min);
+    padding: var(--space-sm) var(--space-lg);
+
+    /* Appearance */
+    background: var(--royal-gold);
+    border-radius: var(--radius-md);
+    color: var(--midnight-canvas);
+
+    /* Typography */
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    text-align: center;
+
+    /* Interaction */
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+    position: relative;
+    overflow: hidden;
+
+    /* Shadow */
+    box-shadow: var(--shadow-md);
+
+    /* Transition */
+    transition: all var(--transition-fast);
+  }
+
+  .btn:active, .btn-primary:active {
+    transform: translateY(1px);
+    background: var(--deep-gold-active);
+  }
+
+  .btn:disabled, .btn-primary:disabled {
+    opacity: 0.5;
+    pointer-events: none;
+  }
+
+  /* Secondary button */
+  .btn-secondary {
+    background: transparent;
+    color: var(--royal-gold);
+    border: 1px solid var(--royal-gold);
+    box-shadow: none;
+  }
+
+  .btn-secondary:active {
+    background: rgba(212, 165, 116, 0.2);
+  }
+
+  /* ================================================================
+     FORMS
+     ================================================================ */
+
+  .admin-field-group label,
+  .admin-form-group label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    color: var(--pearl-text);
+    margin-bottom: var(--space-sm);
+  }
+
+  .admin-field-group input,
+  .admin-field-group textarea,
+  .admin-field-group select,
+  input[type="text"],
+  input[type="email"],
+  input[type="url"],
+  input[type="date"],
+  input[type="time"],
+  textarea,
+  select {
+    width: 100%;
+    min-height: var(--touch-min);
+    padding: var(--space-sm) var(--space-md);
+    background: var(--raised-container);
+    border: 1px solid var(--whisper-border);
+    border-radius: var(--radius-sm);
+    color: var(--pearl-text);
+    font-size: 1rem;
+    font-family: inherit;
+    line-height: 1.6;
+    transition: all var(--transition-fast);
+  }
+
+  textarea {
+    min-height: 120px;
+    resize: vertical;
+  }
+
+  input:focus,
+  textarea:focus,
+  select:focus {
+    outline: none;
+    border-color: var(--royal-gold);
+    box-shadow: 0 0 0 3px rgba(212, 165, 116, 0.15);
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    color: var(--whisper-tertiary);
+    opacity: 0.6;
+  }
+
+  /* ================================================================
+     HELP TEXT
+     ================================================================ */
+
+  .admin-help-text,
+  .muted {
+    font-size: 0.875rem;
+    color: var(--steel-secondary);
+    margin-top: var(--space-xs);
+    line-height: 1.4;
+  }
+
+  /* ================================================================
+     MESSAGES & TOASTS
+     ================================================================ */
+
+  .admin-message {
+    position: fixed;
+    top: var(--space-md);
+    left: var(--space-md);
+    right: var(--space-md);
+    max-width: 400px;
+    z-index: 2000;
+
+    background: var(--raised-container);
+    border: 1px solid var(--whisper-border);
+    border-left: 4px solid var(--info-sky);
+    border-radius: var(--radius-md);
+    padding: var(--space-md);
+    box-shadow: var(--shadow-lg);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+
+    font-size: 0.938rem;
+    color: var(--pearl-text);
+    line-height: 1.6;
+
+    opacity: 0;
+    transform: translateY(-100%);
+    transition: all var(--transition-base);
+    pointer-events: none;
+  }
+
+  .admin-message.visible {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+
+  .admin-message.success {
+    border-left-color: var(--success-mint);
+  }
+
+  .admin-message.error {
+    border-left-color: var(--error-coral);
+  }
+
+  .admin-message.notice {
+    border-left-color: var(--warning-amber);
+  }
+}
+
+/* ================================================================
+   TABLET & DESKTOP (≥ 768px) - Keep Original Sidebar
+   ================================================================ */
+
+@media (min-width: 768px) {
+  /* Restore desktop sidebar behavior */
+  .admin-sidebar {
+    position: relative;
+    width: 240px;
+    height: 100vh;
+    border-right: 1px solid var(--whisper-border);
+    border-top: none;
+  }
+
+  .admin-sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+  }
+
+  .admin-nav-btn {
+    flex-direction: row !important;
+    justify-content: flex-start;
+    gap: var(--space-sm);
+    padding: var(--space-sm) var(--space-md);
+    font-size: 0.875rem;
+    text-transform: none;
+  }
+
+  .admin-nav-btn.active::after {
+    top: 50%;
+    left: 0;
+    transform: translateY(-50%);
+    width: 3px;
+    height: 24px;
+    border-radius: 0 3px 3px 0;
+  }
+
+  .admin-main {
+    padding-bottom: var(--space-md);
+  }
+}
