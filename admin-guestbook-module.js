@@ -148,39 +148,51 @@ const subscribeToGuestbookChanges = () => {
     return null;
   }
 
-  const subscription = SUPABASE
-    .channel('guestbook-changes')
-    .on(
-      'postgres_changes',
-      {
-        event: 'INSERT',
-        schema: 'public',
-        table: 'guestbook_entries',
-        filter: 'status=eq.pending'
-      },
-      (payload) => {
-        console.log('[guestbook] New pending entry detected:', payload.new);
-        renderPendingEntries();
-        showAdminMessage('New guestbook entry received!', 'notice');
-      }
-    )
-    .on(
-      'postgres_changes',
-      {
-        event: 'UPDATE',
-        schema: 'public',
-        table: 'guestbook_entries'
-      },
-      (payload) => {
-        console.log('[guestbook] Entry updated:', payload.new);
-        renderPendingEntries();
-        renderApprovedEntries();
-      }
-    )
-    .subscribe();
+  try {
+    const subscription = SUPABASE
+      .channel('guestbook-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'guestbook_entries',
+          filter: 'status=eq.pending'
+        },
+        (payload) => {
+          console.log('[guestbook] New pending entry detected:', payload.new);
+          renderPendingEntries();
+          showAdminMessage('New guestbook entry received!', 'notice');
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'guestbook_entries'
+        },
+        (payload) => {
+          console.log('[guestbook] Entry updated:', payload.new);
+          renderPendingEntries();
+          renderApprovedEntries();
+        }
+      )
+      .subscribe((status, error) => {
+        if (error) {
+          console.warn('[guestbook] Real-time subscription error (non-critical):', error.message);
+          console.log('[guestbook] Admin panel will work without real-time updates');
+        } else if (status === 'SUBSCRIBED') {
+          console.log('[guestbook] Real-time subscription active');
+        }
+      });
 
-  console.log('[guestbook] Real-time subscription active');
-  return subscription;
+    return subscription;
+  } catch (error) {
+    console.warn('[guestbook] Failed to setup real-time subscription (non-critical):', error.message);
+    console.log('[guestbook] Admin panel will continue without real-time updates');
+    return null;
+  }
 };
 
 /**
@@ -191,5 +203,12 @@ const loadGuestbookDashboard = async () => {
   console.log('[guestbook] Loading dashboard...');
   await renderPendingEntries();
   await renderApprovedEntries();
-  subscribeToGuestbookChanges();
+
+  // Try to setup real-time subscription (non-critical, can fail on mobile)
+  try {
+    subscribeToGuestbookChanges();
+  } catch (error) {
+    console.warn('[guestbook] Could not setup real-time updates:', error.message);
+    // Continue without real-time - manual refresh will still work
+  }
 };
