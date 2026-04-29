@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Admin Debug | RTLWE263</title>
+  <style>
+    body {
+      font-family: monospace;
+      background: #000;
+      color: #0f0;
+      padding: 20px;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+    h1 { color: #fff; font-size: 18px; }
+    .log { margin: 10px 0; padding: 10px; border: 1px solid #333; }
+    .error { color: #f00; border-color: #f00; }
+    .success { color: #0f0; border-color: #0f0; }
+    .warn { color: #ff0; border-color: #ff0; }
+    .info { color: #0af; border-color: #0af; }
+    pre { white-space: pre-wrap; word-wrap: break-word; }
+  </style>
+</head>
+<body>
+  <h1>🔧 Admin Panel Debug</h1>
+  <div id="output"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="supabase-config.js"></script>
+  <script src="supabase-client.js"></script>
+
+  <script>
+    const output = document.getElementById('output');
+
+    function log(message, type = 'info', data = null) {
+      const div = document.createElement('div');
+      div.className = `log ${type}`;
+
+      const text = document.createElement('div');
+      text.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+      div.appendChild(text);
+
+      if (data) {
+        const pre = document.createElement('pre');
+        pre.textContent = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
+        div.appendChild(pre);
+      }
+
+      output.appendChild(div);
+      console.log(message, data);
+    }
+
+    // Capture console errors
+    window.onerror = function(msg, url, line, col, error) {
+      log(`ERROR: ${msg}`, 'error', `${url}:${line}:${col}\n${error?.stack || ''}`);
+    };
+
+    async function testAdminInit() {
+      log('Starting admin initialization test...', 'info');
+
+      // Test 1: Supabase library
+      if (typeof supabase === 'undefined') {
+        log('FAIL: Supabase library not loaded', 'error');
+        return;
+      }
+      log('✅ Supabase library loaded', 'success');
+
+      // Test 2: Config
+      if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+        log('FAIL: Supabase config missing', 'error');
+        return;
+      }
+      log('✅ Supabase config present', 'success');
+
+      // Test 3: Client
+      if (!SUPABASE) {
+        log('FAIL: Supabase client not initialized', 'error');
+        return;
+      }
+      log('✅ Supabase client initialized', 'success');
+
+      // Test 4: Authentication
+      try {
+        log('Checking authentication...', 'info');
+        const { data: { session }, error } = await SUPABASE.auth.getSession();
+
+        if (error) {
+          log('AUTH ERROR', 'error', error.message);
+          return;
+        }
+
+        if (!session) {
+          log('⚠️  NOT LOGGED IN', 'warn', 'You need to login first at /admin-login.html');
+          log('This is why admin panel shows initialization error', 'warn');
+          return;
+        }
+
+        log('✅ Logged in as: ' + session.user.email, 'success');
+      } catch (err) {
+        log('EXCEPTION during auth check', 'error', err.message);
+        return;
+      }
+
+      // Test 5: Database queries (the ones that run during initAdmin)
+      const tables = [
+        'site_settings',
+        'hero_slides',
+        'gallery_images',
+        'programme_events',
+        'tablers',
+        'guestbook_entries'
+      ];
+
+      for (const table of tables) {
+        try {
+          log(`Testing ${table}...`, 'info');
+          const { data, error } = await SUPABASE.from(table).select('*').limit(1);
+
+          if (error) {
+            log(`❌ ${table} query failed`, 'error', error.message);
+          } else {
+            log(`✅ ${table} accessible`, 'success');
+          }
+        } catch (err) {
+          log(`❌ ${table} exception`, 'error', err.message);
+        }
+      }
+
+      // Test 6: Try loading hero slides (first thing admin.js does)
+      try {
+        log('Testing hero slides load (like admin.js does)...', 'info');
+        const { data, error } = await SUPABASE.from('hero_slides').select('*');
+        if (error) {
+          log('❌ Hero slides load failed - THIS IS THE PROBLEM', 'error', error.message);
+        } else {
+          log('✅ Hero slides loaded successfully', 'success', `Found ${data.length} slides`);
+        }
+      } catch (err) {
+        log('❌ Hero slides exception - THIS IS THE PROBLEM', 'error', err.message);
+      }
+
+      log('=== TEST COMPLETE ===', 'info');
+      log('If you see errors above, screenshot this page and send it', 'warn');
+    }
+
+    // Wait for everything to load
+    setTimeout(testAdminInit, 500);
+  </script>
+</body>
+</html>
