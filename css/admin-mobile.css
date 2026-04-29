@@ -1,6 +1,6 @@
 /* ================================================================
    MOBILE-FIRST ADMIN DASHBOARD
-   Elegant dark theme optimized for touch devices
+   Premium dark theme optimized for touch devices
    ================================================================ */
 
 :root {
@@ -26,12 +26,6 @@
   --admin-error: #f87171;
   --admin-info: #60a5fa;
 
-  /* Shadows */
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
-  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.6);
-
   /* Spacing */
   --space-xs: 0.5rem;
   --space-sm: 0.75rem;
@@ -46,662 +40,379 @@
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 16px;
-  --radius-xl: 24px;
-
-  /* Transitions */
-  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-slow: 350ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* ================================================================
-   MOBILE LAYOUT - Bottom Navigation + Swipeable Content
-   ================================================================ */
-
-.admin-body {
-  background: var(--admin-bg);
-  color: var(--admin-text);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "SF Pro Display", sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  overscroll-behavior: none;
-  touch-action: pan-y;
-}
-
-.admin-layout {
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-  max-width: 100vw;
-  overflow-x: hidden;
-  padding-bottom: calc(var(--touch-target) + 16px); /* Space for bottom nav */
-}
-
-/* ================================================================
-   MOBILE HEADER (Top Bar)
-   ================================================================ */
-
-.admin-mobile-header {
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  background: var(--admin-surface);
-  border-bottom: 1px solid var(--admin-border);
-  padding: var(--space-sm) var(--space-md);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  min-height: 56px;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-}
-
-.admin-mobile-header-title {
-  font-size: 1.125rem;
-  font-weight: 600;
-  color: var(--admin-text);
-  letter-spacing: -0.02em;
-}
-
-.admin-mobile-header-subtitle {
-  font-size: 0.75rem;
-  color: var(--admin-text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-top: 2px;
-}
-
-/* ================================================================
-   BOTTOM NAVIGATION (Thumb Zone Optimized)
-   ================================================================ */
-
-.admin-mobile-nav {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  z-index: 1000;
-  background: var(--admin-surface-elevated);
-  border-top: 1px solid var(--admin-border);
-  padding: var(--space-sm) max(var(--space-sm), env(safe-area-inset-left))
-           max(var(--space-sm), env(safe-area-inset-bottom))
-           max(var(--space-sm), env(safe-area-inset-right));
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: var(--space-xs);
-  box-shadow: var(--shadow-xl);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-}
-
-.admin-nav-btn-mobile {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  padding: var(--space-xs);
-  min-height: var(--touch-target);
-  background: transparent;
-  border: none;
-  border-radius: var(--radius-sm);
-  color: var(--admin-text-secondary);
-  font-size: 0.625rem;
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-  cursor: pointer;
-  transition: all var(--transition-fast);
-  -webkit-tap-highlight-color: transparent;
-  position: relative;
-  overflow: hidden;
-}
-
-.admin-nav-btn-mobile::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: var(--admin-primary);
-  opacity: 0;
-  transition: opacity var(--transition-fast);
-}
-
-.admin-nav-btn-mobile:active::before {
-  opacity: 0.1;
-}
-
-.admin-nav-btn-mobile.active {
-  color: var(--admin-primary);
-  background: rgba(212, 165, 116, 0.1);
-}
-
-.admin-nav-btn-mobile.active::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 24px;
-  height: 3px;
-  background: var(--admin-primary);
-  border-radius: 0 0 3px 3px;
-}
-
-.admin-nav-btn-mobile svg {
-  width: 20px;
-  height: 20px;
-  transition: transform var(--transition-fast);
-}
-
-.admin-nav-btn-mobile:active svg {
-  transform: scale(0.9);
-}
-
-/* ================================================================
-   CONTENT PANELS (Swipeable)
-   ================================================================ */
-
-.admin-panel {
-  display: none;
-  padding: var(--space-md);
-  animation: slideInUp var(--transition-base);
-}
-
-.admin-panel.active {
-  display: block;
-}
-
-@keyframes slideInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* ================================================================
-   CARDS & SURFACES
-   ================================================================ */
-
-.admin-card {
-  background: var(--admin-surface);
-  border: 1px solid var(--admin-border);
-  border-radius: var(--radius-md);
-  padding: var(--space-md);
-  margin-bottom: var(--space-md);
-  box-shadow: var(--shadow-sm);
-}
-
-.admin-card-header {
-  margin-bottom: var(--space-md);
-  padding-bottom: var(--space-sm);
-  border-bottom: 1px solid var(--admin-border);
-}
-
-.admin-card-title {
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--admin-text);
-  letter-spacing: -0.01em;
-}
-
-.admin-card-description {
-  font-size: 0.875rem;
-  color: var(--admin-text-secondary);
-  margin-top: var(--space-xs);
-  line-height: 1.5;
-}
-
-/* ================================================================
-   FORMS (Touch-Optimized)
-   ================================================================ */
-
-.admin-form-group {
-  margin-bottom: var(--space-lg);
-}
-
-.admin-label {
-  display: block;
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: var(--admin-text);
-  margin-bottom: var(--space-sm);
-  letter-spacing: -0.01em;
-}
-
-.admin-input,
-.admin-textarea,
-.admin-select {
-  width: 100%;
-  min-height: var(--touch-target);
-  padding: var(--space-sm) var(--space-md);
-  background: var(--admin-surface-elevated);
-  border: 1px solid var(--admin-border);
-  border-radius: var(--radius-sm);
-  color: var(--admin-text);
-  font-size: 1rem;
-  font-family: inherit;
-  transition: all var(--transition-fast);
-  -webkit-appearance: none;
-  appearance: none;
-}
-
-.admin-input:focus,
-.admin-textarea:focus,
-.admin-select:focus {
-  outline: none;
-  border-color: var(--admin-primary);
-  box-shadow: 0 0 0 3px rgba(212, 165, 116, 0.15);
-}
-
-.admin-textarea {
-  min-height: 120px;
-  resize: vertical;
-  line-height: 1.6;
-}
-
-/* ================================================================
-   BUTTONS (Large Touch Targets)
-   ================================================================ */
-
-.btn-admin {
-  min-height: var(--touch-target);
-  padding: var(--space-sm) var(--space-lg);
-  background: var(--admin-primary);
-  color: var(--admin-bg);
-  border: none;
-  border-radius: var(--radius-md);
-  font-size: 1rem;
-  font-weight: 600;
-  text-align: center;
-  cursor: pointer;
-  transition: all var(--transition-fast);
-  -webkit-tap-highlight-color: transparent;
-  position: relative;
-  overflow: hidden;
-  box-shadow: var(--shadow-md);
-}
-
-.btn-admin::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(135deg, rgba(255,255,255,0.2), transparent);
-  opacity: 0;
-  transition: opacity var(--transition-fast);
-}
-
-.btn-admin:active::before {
-  opacity: 1;
-}
-
-.btn-admin:active {
-  transform: scale(0.97);
-}
-
-.btn-admin-secondary {
-  background: var(--admin-surface-elevated);
-  color: var(--admin-text);
-  border: 1px solid var(--admin-border);
-}
-
-.btn-admin-ghost {
-  background: transparent;
-  color: var(--admin-primary);
-  border: 1px solid var(--admin-primary);
-  box-shadow: none;
-}
-
-.btn-admin-danger {
-  background: var(--admin-error);
-  color: white;
-}
-
-.btn-admin-full {
-  width: 100%;
-}
-
-/* Button Loading State */
-.btn-admin.loading {
-  pointer-events: none;
-  opacity: 0.7;
-  position: relative;
-}
-
-.btn-admin.loading::after {
-  content: '';
-  position: absolute;
-  width: 16px;
-  height: 16px;
-  border: 2px solid currentColor;
-  border-top-color: transparent;
-  border-radius: 50%;
-  animation: spin 0.6s linear infinite;
-  right: var(--space-md);
-  top: 50%;
-  transform: translateY(-50%);
-}
-
-@keyframes spin {
-  to { transform: translateY(-50%) rotate(360deg); }
-}
-
-/* ================================================================
-   TOAST NOTIFICATIONS (Visual Feedback)
-   ================================================================ */
-
-.admin-toast-container {
-  position: fixed;
-  top: calc(56px + var(--space-md)); /* Below header */
-  left: var(--space-md);
-  right: var(--space-md);
-  z-index: 2000;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-sm);
-  pointer-events: none;
-}
-
-.admin-toast {
-  padding: var(--space-md) var(--space-lg);
-  background: var(--admin-surface-elevated);
-  border: 1px solid var(--admin-border);
-  border-radius: var(--radius-md);
-  color: var(--admin-text);
-  box-shadow: var(--shadow-xl);
-  display: flex;
-  align-items: center;
-  gap: var(--space-sm);
-  font-size: 0.938rem;
-  font-weight: 500;
-  pointer-events: auto;
-  animation: toastSlideIn var(--transition-base);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-}
-
-.admin-toast.success {
-  border-left: 4px solid var(--admin-success);
-}
-
-.admin-toast.error {
-  border-left: 4px solid var(--admin-error);
-}
-
-.admin-toast.warning {
-  border-left: 4px solid var(--admin-warning);
-}
-
-.admin-toast.info {
-  border-left: 4px solid var(--admin-info);
-}
-
-@keyframes toastSlideIn {
-  from {
-    opacity: 0;
-    transform: translateY(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* ================================================================
-   MOBILE OPTIMIZATIONS
-   ================================================================ */
-
-/* Thumb-zone safe areas */
-.admin-content-safe {
-  padding-left: max(var(--space-md), env(safe-area-inset-left));
-  padding-right: max(var(--space-md), env(safe-area-inset-right));
-}
-
-/* Pull-to-refresh indicator */
-.admin-refresh-indicator {
-  position: fixed;
-  top: 56px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 32px;
-  height: 32px;
-  opacity: 0;
-  transition: opacity var(--transition-fast);
-}
-
-.admin-refresh-indicator.active {
-  opacity: 1;
-}
-
-/* Prevent text selection on buttons */
-.admin-nav-btn-mobile,
-.btn-admin {
-  -webkit-user-select: none;
-  user-select: none;
-}
-
-/* ================================================================
-   MOBILE: Make existing .admin-sidebar work as bottom nav
+   MOBILE-ONLY OVERRIDES (< 768px)
    ================================================================ */
 
 @media (max-width: 767px) {
-  /* Hide desktop sidebar container */
+  /* Hide desktop sidebar completely */
   .admin-sidebar {
+    display: none !important;
+  }
+
+  /* Full width content on mobile */
+  .admin-content {
+    margin-left: 0 !important;
+    padding: 1rem !important;
+    padding-bottom: 90px !important; /* Space for bottom nav */
+  }
+
+  /* ============================================================
+     BOTTOM NAVIGATION (Fixed)
+     ============================================================ */
+
+  .admin-sidebar-nav {
     position: fixed;
     bottom: 0;
     left: 0;
     right: 0;
-    top: auto;
     z-index: 1000;
     background: var(--admin-surface-elevated);
     border-top: 1px solid var(--admin-border);
-    border-right: none;
-    padding: var(--space-sm);
-    box-shadow: var(--shadow-xl);
+    padding: 8px 8px max(8px, env(safe-area-inset-bottom)) 8px;
+    display: grid !important;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 4px;
+    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.4);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    width: 100%;
-    height: auto;
-    display: flex;
-    flex-direction: column;
   }
 
-  /* Hide brand and footer on mobile */
-  .admin-sidebar-brand,
-  .admin-sidebar-footer {
-    display: none;
-  }
-
-  /* Make nav horizontal grid */
-  .admin-sidebar-nav {
-    display: grid;
-    grid-template-columns: repeat(6, 1fr);
-    gap: var(--space-xs);
-    padding: 0;
-  }
-
-  /* Style existing .admin-nav-btn for mobile */
   .admin-nav-btn {
     display: flex !important;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 4px;
-    padding: var(--space-xs);
-    min-height: var(--touch-target);
-    background: transparent;
-    border: none;
-    border-radius: var(--radius-sm);
-    color: var(--admin-text-secondary);
-    font-size: 0.625rem;
-    font-weight: 500;
-    text-transform: uppercase;
-    letter-spacing: 0.03em;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 4px !important;
+    padding: 8px 4px !important;
+    min-height: 56px !important;
+    background: transparent !important;
+    border: none !important;
+    border-radius: var(--radius-sm) !important;
+    color: var(--admin-text-secondary) !important;
+    font-size: 10px !important;
+    font-weight: 600 !important;
+    letter-spacing: 0 !important;
+    text-transform: none !important;
     cursor: pointer;
-    transition: all var(--transition-fast);
+    transition: all 0.2s ease !important;
     -webkit-tap-highlight-color: transparent;
     position: relative;
-    overflow: hidden;
-  }
-
-  .admin-nav-btn::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: var(--admin-primary);
-    opacity: 0;
-    transition: opacity var(--transition-fast);
-  }
-
-  .admin-nav-btn:active::before {
-    opacity: 0.1;
-  }
-
-  .admin-nav-btn.active {
-    color: var(--admin-primary);
-    background: rgba(212, 165, 116, 0.1);
-  }
-
-  .admin-nav-btn.active::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 24px;
-    height: 3px;
-    background: var(--admin-primary);
-    border-radius: 0 0 3px 3px;
+    width: 100% !important;
+    text-align: center !important;
   }
 
   .admin-nav-btn svg {
-    width: 20px;
-    height: 20px;
-    transition: transform var(--transition-fast);
+    width: 24px !important;
+    height: 24px !important;
+    stroke-width: 2 !important;
+    flex-shrink: 0;
   }
 
-  .admin-nav-btn:active svg {
-    transform: scale(0.9);
+  .admin-nav-btn:active {
+    transform: scale(0.95);
+    background: rgba(255, 255, 255, 0.05) !important;
   }
 
-  /* Add padding for bottom nav */
-  .admin-main {
-    padding-bottom: calc(var(--touch-target) + 32px);
-  }
-}
-
-/* ================================================================
-   TABLET & DESKTOP (Adaptive Layout)
-   ================================================================ */
-
-@media (min-width: 768px) {
-  .admin-layout {
-    flex-direction: row;
-    padding-bottom: 0;
+  .admin-nav-btn.active {
+    color: var(--admin-primary) !important;
+    background: rgba(212, 165, 116, 0.12) !important;
   }
 
-  .admin-mobile-nav {
-    position: relative;
-    width: 240px;
-    height: 100vh;
-    flex-direction: column;
-    padding: var(--space-lg);
-    border-top: none;
-    border-right: 1px solid var(--admin-border);
+  .admin-nav-btn.active svg {
+    stroke: var(--admin-primary);
   }
 
-  .admin-nav-btn-mobile {
-    flex-direction: row;
-    justify-content: flex-start;
-    gap: var(--space-sm);
-    padding: var(--space-sm) var(--space-md);
-    font-size: 0.875rem;
+  /* ============================================================
+     TYPOGRAPHY - MOBILE OPTIMIZED
+     ============================================================ */
+
+  .admin-panel h2 {
+    font-size: 1.5rem !important;
+    font-weight: 700 !important;
+    margin-bottom: 0.5rem !important;
+    color: var(--admin-text) !important;
+    letter-spacing: -0.02em !important;
   }
 
-  .admin-nav-btn-mobile.active::after {
-    top: 50%;
-    left: 0;
-    transform: translateY(-50%);
-    width: 3px;
-    height: 24px;
-    border-radius: 0 3px 3px 0;
+  .admin-panel p,
+  .admin-panel label,
+  .admin-panel input,
+  .admin-panel textarea {
+    font-size: 1rem !important;
+    line-height: 1.6 !important;
   }
+
+  .admin-panel small,
+  .admin-panel .muted {
+    font-size: 0.875rem !important;
+    color: var(--admin-text-secondary) !important;
+    line-height: 1.5 !important;
+  }
+
+  /* ============================================================
+     FORM INPUTS - TOUCH OPTIMIZED
+     ============================================================ */
+
+  .admin-field-group input[type="text"],
+  .admin-field-group input[type="email"],
+  .admin-field-group input[type="url"],
+  .admin-field-group input[type="date"],
+  .admin-field-group input[type="time"],
+  .admin-field-group textarea,
+  .admin-field-group select,
+  input.admin-row-url,
+  input.admin-row-caption,
+  input.admin-event-date,
+  input.admin-event-time,
+  input.admin-event-location,
+  input.admin-event-contact,
+  input.admin-event-title,
+  textarea.admin-event-desc,
+  input.admin-tabler-name,
+  input.admin-tabler-role,
+  input.admin-tabler-bio,
+  input.album-name-input,
+  input.album-date-input {
+    min-height: 48px !important;
+    padding: 12px 16px !important;
+    font-size: 1rem !important;
+    border-radius: var(--radius-md) !important;
+    background: var(--admin-surface) !important;
+    border: 1px solid var(--admin-border) !important;
+    color: var(--admin-text) !important;
+    margin-bottom: 12px !important;
+  }
+
+  textarea {
+    min-height: 120px !important;
+    resize: vertical !important;
+  }
+
+  label {
+    display: block !important;
+    margin-bottom: 8px !important;
+    font-weight: 600 !important;
+    color: var(--admin-text) !important;
+    font-size: 0.9375rem !important;
+  }
+
+  /* ============================================================
+     BUTTONS - TOUCH OPTIMIZED
+     ============================================================ */
+
+  .btn,
+  button.btn-primary,
+  button.btn-secondary,
+  .admin-save-btn {
+    min-height: 48px !important;
+    padding: 12px 24px !important;
+    font-size: 1rem !important;
+    font-weight: 600 !important;
+    border-radius: var(--radius-md) !important;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+
+  .btn:active {
+    transform: scale(0.97);
+  }
+
+  /* Remove buttons - dangerous red */
+  .admin-row-remove,
+  .admin-event-remove,
+  .admin-tabler-remove,
+  .gallery-btn-del-album,
+  button[data-action="reject"] {
+    background: rgba(248, 113, 113, 0.15) !important;
+    color: var(--admin-error) !important;
+    border: 1px solid rgba(248, 113, 113, 0.3) !important;
+    min-height: 44px !important;
+  }
+
+  /* ============================================================
+     CARDS & PANELS
+     ============================================================ */
+
+  .admin-card,
+  .gallery-album-card,
+  .guestbook-entry-card {
+    padding: 1.25rem !important;
+    margin-bottom: 1rem !important;
+    border-radius: var(--radius-lg) !important;
+    background: var(--admin-surface) !important;
+    border: 1px solid var(--admin-border) !important;
+  }
+
+  /* Event rows - better spacing */
+  .admin-event-row,
+  .admin-image-row,
+  .admin-tabler-row {
+    padding: 1rem !important;
+    margin-bottom: 1rem !important;
+    background: var(--admin-surface) !important;
+    border-radius: var(--radius-md) !important;
+    border: 1px solid var(--admin-border) !important;
+  }
+
+  /* ============================================================
+     HELPER TEXT & HINTS
+     ============================================================ */
+
+  .admin-hint,
+  .admin-helper-text,
+  small,
+  [class*="hint"],
+  [class*="tip"] {
+    font-size: 0.875rem !important;
+    line-height: 1.5 !important;
+    color: var(--admin-text-tertiary) !important;
+    margin-top: 4px !important;
+    display: block !important;
+  }
+
+  /* Make placeholder text more visible */
+  ::placeholder {
+    color: var(--admin-text-tertiary) !important;
+    opacity: 0.7 !important;
+  }
+
+  /* ============================================================
+     GUESTBOOK SPECIFIC
+     ============================================================ */
+
+  .guestbook-entry-header {
+    margin-bottom: 12px !important;
+  }
+
+  .guestbook-entry-name {
+    font-size: 1.125rem !important;
+    font-weight: 600 !important;
+  }
+
+  .guestbook-entry-meta {
+    font-size: 0.875rem !important;
+    color: var(--admin-text-secondary) !important;
+  }
+
+  .guestbook-entry-message {
+    font-size: 1rem !important;
+    line-height: 1.6 !important;
+    margin: 12px 0 !important;
+  }
+
+  .guestbook-entry-actions {
+    display: flex !important;
+    gap: 8px !important;
+    margin-top: 12px !important;
+  }
+
+  .guestbook-entry-actions button {
+    flex: 1 !important;
+  }
+
+  /* ============================================================
+     NOTIFICATION BADGE
+     ============================================================ */
+
+  .admin-nav-badge {
+    position: absolute !important;
+    top: 6px !important;
+    right: 6px !important;
+    min-width: 20px !important;
+    height: 20px !important;
+    padding: 0 6px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    color: #fff !important;
+    background: var(--admin-error) !important;
+    border-radius: 10px !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3) !important;
+    z-index: 10 !important;
+  }
+
+  @keyframes badgePulse {
+    0% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.2);
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
+
+  .badge-pulse {
+    animation: badgePulse 0.4s ease-out;
+  }
+
+  /* ============================================================
+     ADMIN MESSAGE TOAST
+     ============================================================ */
+
+  .admin-message {
+    position: fixed !important;
+    top: 20px !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    max-width: calc(100vw - 32px) !important;
+    padding: 16px 20px !important;
+    font-size: 0.9375rem !important;
+    border-radius: var(--radius-md) !important;
+    z-index: 2000 !important;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5) !important;
+  }
+
+  /* ============================================================
+     RESPONSIVE IMAGES
+     ============================================================ */
+
+  img {
+    max-width: 100% !important;
+    height: auto !important;
+  }
+
+  .admin-row-preview-img,
+  .gallery-album-thumb {
+    border-radius: var(--radius-sm) !important;
+  }
+
+  /* ============================================================
+     IMPROVED SPACING
+     ============================================================ */
 
   .admin-panel {
-    flex: 1;
-    padding: var(--space-xl);
-    max-width: 1200px;
+    padding: 0 !important;
   }
-}
 
-/* ================================================================
-   DARK MODE ENHANCEMENTS
-   ================================================================ */
-
-/* Increase contrast for better readability */
-@media (prefers-contrast: high) {
-  :root {
-    --admin-text: #ffffff;
-    --admin-border: rgba(255, 255, 255, 0.15);
+  .admin-panel > * + * {
+    margin-top: 1rem !important;
   }
-}
 
-/* Reduce motion for accessibility */
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
+  /* Add breathing room to sections */
+  .admin-field-group + .admin-field-group {
+    margin-top: 1.5rem !important;
   }
-}
 
-/* ================================================================
-   NOTIFICATION BADGE
-   Displays unread guestbook entry count
-   ================================================================ */
+  /* ============================================================
+     FIX OVERFLOW ISSUES
+     ============================================================ */
 
-.admin-nav-badge {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  min-width: 20px;
-  height: 20px;
-  padding: 0 6px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--admin-bg);
-  background: var(--admin-error);
-  border-radius: 10px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-  z-index: 10;
-}
-
-/* Badge pulse animation */
-@keyframes badgePulse {
-  0% {
-    transform: scale(1);
+  * {
+    box-sizing: border-box !important;
   }
-  50% {
-    transform: scale(1.2);
-  }
-  100% {
-    transform: scale(1);
-  }
-}
 
-.badge-pulse {
-  animation: badgePulse 0.4s ease-out;
-}
+  body {
+    overflow-x: hidden !important;
+  }
 
-/* Make nav button position relative for absolute badge */
-.admin-nav-btn {
-  position: relative;
+  .admin-content {
+    overflow-x: hidden !important;
+  }
 }
