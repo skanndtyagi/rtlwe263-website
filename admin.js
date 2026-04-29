@@ -1059,16 +1059,24 @@ const fetchGalleryAlbums = async () => {
 };
 
 const renderGalleryAdmin = async () => {
-  const container = adminGet('admin-gallery-albums');
-  if (!container) return;
-  container.innerHTML = '<p class="muted" style="padding:1rem 0">Loading albums…</p>';
-  const albums = await fetchGalleryAlbums();
-  if (!albums.length) {
-    container.innerHTML = '<p class="muted" style="padding:1rem 0">No albums yet. Click <strong>+ New Album</strong> to create your first event album.</p>';
-    return;
+  try {
+    const container = adminGet('admin-gallery-albums');
+    if (!container) {
+      console.warn('[gallery] Container element not found - may not be visible on mobile viewport');
+      return;
+    }
+    container.innerHTML = '<p class="muted" style="padding:1rem 0">Loading albums…</p>';
+    const albums = await fetchGalleryAlbums();
+    if (!albums.length) {
+      container.innerHTML = '<p class="muted" style="padding:1rem 0">No albums yet. Click <strong>+ New Album</strong> to create your first event album.</p>';
+      return;
+    }
+    container.innerHTML = '';
+    albums.forEach((album) => container.appendChild(createAlbumCard(album)));
+  } catch (error) {
+    console.error('[gallery] Render error:', error.message);
+    throw error; // Re-throw for initAdmin to catch
   }
-  container.innerHTML = '';
-  albums.forEach((album) => container.appendChild(createAlbumCard(album)));
 };
 
 const createAlbumCard = (album) => {
@@ -1583,31 +1591,41 @@ const initAdmin = async () => {
   try {
     console.log('[admin] Step 1: Checking auth...');
     await requireAuth();
+    console.log('[admin] ✅ Auth complete');
 
     console.log('[admin] Step 2: Loading admin state...');
     await loadAdminState(); // Now async to load tablers from Supabase
+    console.log('[admin] ✅ Admin state loaded');
 
     console.log('[admin] Step 3: Rendering gallery...');
-    renderGalleryAdmin(); // async — updates DOM when Supabase responds
+    await renderGalleryAdmin();
+    console.log('[admin] ✅ Gallery rendered');
 
     console.log('[admin] Step 4: Loading guestbook...');
     await loadGuestbookDashboard(); // Load guestbook with real-time updates
+    console.log('[admin] ✅ Guestbook loaded');
 
     console.log('[admin] Step 5: Handling URL parameters...');
     handleURLParameters(); // Handle approve-from-email and other URL actions
+    console.log('[admin] ✅ URL parameters handled');
 
     console.log('[admin] Step 6: Binding events...');
     bindAdminEvents();
+    console.log('[admin] ✅ Events bound');
 
-    console.log('[admin] ✅ Initialization complete');
+    console.log('[admin] ✅✅✅ INITIALIZATION COMPLETE ✅✅✅');
+
+    // Show success message on mobile to confirm it worked
+    showAdminMessage('Admin panel loaded successfully!', 'success');
+
   } catch (error) {
-    console.error('[admin] ❌ Initialization failed at step:', error);
-    console.error('[admin] Error details:', {
-      name: error.name,
-      message: error.message,
-      stack: error.stack
-    });
-    showAdminMessage('Failed to initialize admin panel. Check console for errors.', 'notice');
+    console.error('[admin] ❌ Initialization failed');
+    console.error('[admin] Error name:', error.name);
+    console.error('[admin] Error message:', error.message);
+    console.error('[admin] Error stack:', error.stack);
+
+    // Show detailed error on screen for mobile debugging
+    showAdminMessage(`Failed to initialize: ${error.message}`, 'notice');
   }
 };
 
