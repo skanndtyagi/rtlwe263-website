@@ -407,6 +407,14 @@ const collectEventRows = () => {
 };
 
 const showAdminMessage = (text, type = 'notice') => {
+  // Use mobile toast if available (better on mobile)
+  if (typeof window.adminMobile !== 'undefined') {
+    const toastType = type === 'success' ? 'success' : type === 'error' ? 'error' : 'info';
+    window.adminMobile.showToast(text, toastType);
+    return;
+  }
+
+  // Fallback to original message system
   const msg = adminGet('admin-message');
   if (!msg) return;
   msg.textContent = text;
