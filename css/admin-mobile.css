@@ -47,9 +47,19 @@
    ================================================================ */
 
 @media (max-width: 767px) {
-  /* Hide desktop sidebar completely */
-  .admin-sidebar {
+  /* Hide desktop sidebar parts but keep navigation */
+  .admin-sidebar-header,
+  .admin-sidebar-footer,
+  .admin-sidebar-link {
     display: none !important;
+  }
+
+  /* Make sidebar transparent (only nav visible) */
+  .admin-sidebar {
+    width: 100% !important;
+    position: static !important;
+    background: transparent !important;
+    border: none !important;
   }
 
   /* Full width content on mobile */
@@ -64,20 +74,20 @@
      ============================================================ */
 
   .admin-sidebar-nav {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    z-index: 1000;
-    background: var(--admin-surface-elevated);
-    border-top: 1px solid var(--admin-border);
-    padding: 8px 8px max(8px, env(safe-area-inset-bottom)) 8px;
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    z-index: 1000 !important;
+    background: var(--admin-surface-elevated) !important;
+    border-top: 1px solid var(--admin-border) !important;
+    padding: 8px 8px max(8px, env(safe-area-inset-bottom)) 8px !important;
     display: grid !important;
-    grid-template-columns: repeat(6, 1fr);
-    gap: 4px;
-    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.4);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+    grid-template-columns: repeat(6, 1fr) !important;
+    gap: 4px !important;
+    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.4) !important;
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
   }
 
   .admin-nav-btn {
@@ -358,15 +368,24 @@
 
   .admin-message {
     position: fixed !important;
-    top: 20px !important;
+    top: auto !important;
+    bottom: 100px !important; /* Above bottom nav */
     left: 50% !important;
     transform: translateX(-50%) !important;
     max-width: calc(100vw - 32px) !important;
-    padding: 16px 20px !important;
-    font-size: 0.9375rem !important;
+    padding: 12px 16px !important;
+    font-size: 0.875rem !important;
     border-radius: var(--radius-md) !important;
     z-index: 2000 !important;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5) !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    transition: opacity 0.3s ease !important;
+  }
+
+  .admin-message.visible {
+    opacity: 1 !important;
+    pointer-events: auto !important;
   }
 
   /* ============================================================
