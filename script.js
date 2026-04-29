@@ -1258,6 +1258,39 @@ const initSite = async () => {
 
 const shouldInitSite = () => Boolean(document.getElementById('hero-image'));
 
-if (shouldInitSite()) {
-  initSite();
+// Wait for Supabase before initializing (for fetching remote data)
+const waitForSupabaseAndInitSite = async () => {
+  if (!shouldInitSite()) {
+    return;
+  }
+
+  const maxRetries = 10;
+  let retries = 0;
+
+  const checkAndInit = async () => {
+    // Check if Supabase is ready (for remote data)
+    if (typeof isSupabaseReady === 'function' && isSupabaseReady()) {
+      console.log('[site] Supabase ready, fetching remote data...');
+      await initSite();
+      return;
+    }
+
+    retries++;
+    if (retries >= maxRetries) {
+      console.warn('[site] Supabase not available, initializing with local data only');
+      await initSite(); // Init anyway with local/fallback data
+      return;
+    }
+
+    console.log('[site] Waiting for Supabase... (attempt', retries, '/', maxRetries, ')');
+    setTimeout(checkAndInit, 300);
+  };
+
+  checkAndInit();
+};
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', waitForSupabaseAndInitSite);
+} else {
+  waitForSupabaseAndInitSite();
 }

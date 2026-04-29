@@ -1567,4 +1567,35 @@ const initAdmin = async () => {
   }
 };
 
-initAdmin();
+// Wait for Supabase to be ready before initializing admin
+const waitForSupabaseAndInit = async () => {
+  const maxRetries = 10;
+  let retries = 0;
+
+  const checkAndInit = async () => {
+    if (isSupabaseReady()) {
+      console.log('[admin] Supabase ready, initializing admin panel...');
+      await initAdmin();
+      return;
+    }
+
+    retries++;
+    if (retries >= maxRetries) {
+      console.error('[admin] Supabase failed to initialize after', maxRetries, 'attempts');
+      showAdminMessage('Failed to connect to database. Please refresh the page.', 'notice');
+      return;
+    }
+
+    console.log('[admin] Waiting for Supabase... (attempt', retries, '/', maxRetries, ')');
+    setTimeout(checkAndInit, 300); // Retry after 300ms
+  };
+
+  checkAndInit();
+};
+
+// Start initialization when DOM is ready
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', waitForSupabaseAndInit);
+} else {
+  waitForSupabaseAndInit();
+}
