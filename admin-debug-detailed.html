@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Admin Detailed Debug</title>
+  <style>
+    body {
+      font-family: monospace;
+      background: #0a0e1a;
+      color: #e8e9ed;
+      padding: 15px;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    h1 { color: #d4a574; font-size: 16px; margin: 10px 0; }
+    .log {
+      margin: 8px 0;
+      padding: 8px;
+      border-left: 3px solid #333;
+      background: #141824;
+    }
+    .error { border-color: #f87171; color: #f87171; }
+    .success { border-color: #4ade80; color: #4ade80; }
+    .warn { border-color: #fbbf24; color: #fbbf24; }
+    .info { border-color: #60a5fa; }
+    pre {
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      font-size: 11px;
+      background: #0a0e1a;
+      padding: 5px;
+      margin: 5px 0;
+      max-height: 150px;
+      overflow-y: auto;
+    }
+    .step { font-weight: bold; color: #d4a574; }
+  </style>
+</head>
+<body>
+  <h1>🔧 Admin Init Step-by-Step Debug</h1>
+  <div id="output"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="supabase-config.js"></script>
+  <script src="supabase-client.js"></script>
+  <script src="script.js"></script>
+  <script src="admin-guestbook-module.js"></script>
+
+  <script>
+    const output = document.getElementById('output');
+
+    function log(message, type = 'info', data = null) {
+      const div = document.createElement('div');
+      div.className = `log ${type}`;
+
+      const text = document.createElement('div');
+      text.textContent = `${message}`;
+      div.appendChild(text);
+
+      if (data) {
+        const pre = document.createElement('pre');
+        pre.textContent = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
+        div.appendChild(pre);
+      }
+
+      output.appendChild(div);
+      window.scrollTo(0, document.body.scrollHeight);
+    }
+
+    window.onerror = function(msg, url, line, col, error) {
+      log(`💥 UNCAUGHT ERROR: ${msg}`, 'error', `${url}:${line}:${col}\n${error?.stack || ''}`);
+    };
+
+    async function testAdminInitSteps() {
+      log('=== TESTING ADMIN INITIALIZATION ===', 'info');
+      log('This tests the exact same steps as admin.js initAdmin()', 'info');
+
+      // Check if logged in
+      try {
+        const { data: { session }, error } = await SUPABASE.auth.getSession();
+        if (!session) {
+          log('❌ NOT LOGGED IN - This is the problem!', 'error', 'Login at /admin-login.html first');
+          return;
+        }
+        log(`✅ Logged in as: ${session.user.email}`, 'success');
+      } catch (err) {
+        log('❌ Auth check failed', 'error', err.message);
+        return;
+      }
+
+      // STEP 1: Test hero_slides query (part of loadAdminState)
+      log('\n📝 STEP 1: Loading hero slides...', 'info');
+      try {
+        const { data, error } = await SUPABASE.from('hero_slides').select('*');
+        if (error) throw error;
+        log(`✅ Hero slides loaded: ${data.length} items`, 'success');
+      } catch (err) {
+        log('❌ FAILED: Hero slides', 'error', err.message);
+        log('🚨 THIS IS THE ERROR CAUSING ADMIN PANEL TO FAIL', 'error');
+        return;
+      }
+
+      // STEP 2: Test gallery_images query (renderGalleryAdmin)
+      log('\n📝 STEP 2: Loading gallery images...', 'info');
+      try {
+        const { data, error } = await SUPABASE.from('gallery_images').select('*').order('created_at', { ascending: false });
+        if (error) throw error;
+        log(`✅ Gallery images loaded: ${data.length} items`, 'success');
+      } catch (err) {
+        log('❌ FAILED: Gallery images', 'error', err.message);
+        log('🚨 THIS IS THE ERROR CAUSING ADMIN PANEL TO FAIL', 'error');
+        return;
+      }
+
+      // STEP 3: Test programme_events query
+      log('\n📝 STEP 3: Loading programme events...', 'info');
+      try {
+        const { data, error } = await SUPABASE.from('programme_events').select('*').order('date', { ascending: true });
+        if (error) throw error;
+        log(`✅ Programme events loaded: ${data.length} items`, 'success');
+      } catch (err) {
+        log('❌ FAILED: Programme events', 'error', err.message);
+        log('🚨 THIS IS THE ERROR CAUSING ADMIN PANEL TO FAIL', 'error');
+        return;
+      }
+
+      // STEP 4: Test tablers query
+      log('\n📝 STEP 4: Loading tablers...', 'info');
+      try {
+        const { data, error } = await SUPABASE.from('tablers').select('*').order('display_order', { ascending: true, nullsFirst: false });
+        if (error) throw error;
+        log(`✅ Tablers loaded: ${data.length} items`, 'success');
+      } catch (err) {
+        log('❌ FAILED: Tablers', 'error', err.message);
+        log('🚨 THIS IS THE ERROR CAUSING ADMIN PANEL TO FAIL', 'error');
+        return;
+      }
+
+      // STEP 5: Test guestbook_entries query (loadGuestbookDashboard)
+      log('\n📝 STEP 5: Loading guestbook entries...', 'info');
+      try {
+        const { data, error } = await SUPABASE.from('guestbook_entries').select('*').order('created_at', { ascending: false });
+        if (error) throw error;
+        log(`✅ Guestbook entries loaded: ${data.length} items`, 'success');
+      } catch (err) {
+        log('❌ FAILED: Guestbook entries', 'error', err.message);
+        log('🚨 THIS IS THE ERROR CAUSING ADMIN PANEL TO FAIL', 'error');
+        return;
+      }
+
+      // STEP 6: Check if DOM elements exist (bindAdminEvents needs these)
+      log('\n📝 STEP 6: Checking DOM elements...', 'info');
+      const requiredElements = [
+        'admin-save-hero',
+        'admin-save-gallery',
+        'admin-save-programme',
+        'admin-save-tablers',
+        'admin-logout'
+      ];
+
+      let missingElements = [];
+      for (const id of requiredElements) {
+        const el = document.getElementById(id);
+        if (!el) {
+          missingElements.push(id);
+        }
+      }
+
+      if (missingElements.length > 0) {
+        log('⚠️  Missing DOM elements (expected on this page):', 'warn', missingElements.join(', '));
+        log('ℹ️  This is OK - debug page is not the full admin panel', 'info');
+      } else {
+        log('✅ All expected DOM elements present', 'success');
+      }
+
+      // STEP 7: Check if functions exist
+      log('\n📝 STEP 7: Checking required functions...', 'info');
+      const requiredFunctions = [
+        'loadGuestbookDashboard',
+        'isSupabaseReady'
+      ];
+
+      let missingFunctions = [];
+      for (const fname of requiredFunctions) {
+        if (typeof window[fname] === 'undefined') {
+          missingFunctions.push(fname);
+        }
+      }
+
+      if (missingFunctions.length > 0) {
+        log('❌ Missing functions:', 'error', missingFunctions.join(', '));
+        log('🚨 THIS COULD BE THE ERROR', 'error');
+      } else {
+        log('✅ All required functions exist', 'success');
+      }
+
+      // Final summary
+      log('\n=== TEST COMPLETE ===', 'success');
+      log('✅ All database queries work', 'success');
+      log('✅ Authentication works', 'success');
+      log('ℹ️  If admin panel still fails, the issue is likely:', 'info');
+      log('   1. A missing function in admin.js', 'info');
+      log('   2. A DOM element not found', 'info');
+      log('   3. An error in bindAdminEvents()', 'info');
+      log('\n📸 SCREENSHOT THIS and send it to me', 'warn');
+    }
+
+    // Wait for everything to load
+    setTimeout(testAdminInitSteps, 1000);
+  </script>
+</body>
+</html>
