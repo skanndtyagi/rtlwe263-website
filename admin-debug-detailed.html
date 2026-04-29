@@ -128,7 +128,7 @@
       // STEP 4: Test tablers query
       log('\n📝 STEP 4: Loading tablers...', 'info');
       try {
-        const { data, error } = await SUPABASE.from('tablers').select('*').order('display_order', { ascending: true, nullsFirst: false });
+        const { data, error } = await SUPABASE.from('tablers').select('*').eq('active', true).order('order', { ascending: true });
         if (error) throw error;
         log(`✅ Tablers loaded: ${data.length} items`, 'success');
       } catch (err) {
