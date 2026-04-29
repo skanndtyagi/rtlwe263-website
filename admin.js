@@ -846,9 +846,17 @@ const loadAdminState = async () => {
 };;
 
 const bindAdminEvents = () => {
-  // Panel switching
+  // Panel switching (with mobile touch support)
   document.querySelectorAll('.admin-nav-btn').forEach(btn => {
-    btn.addEventListener('click', () => switchPanel(btn.dataset.panel));
+    const handler = () => {
+      console.log('[admin] Nav button clicked:', btn.dataset.panel);
+      switchPanel(btn.dataset.panel);
+    };
+    btn.addEventListener('click', handler);
+    btn.addEventListener('touchend', (e) => {
+      e.preventDefault();
+      handler();
+    }, { passive: false });
   });
 
   // Hero & About
